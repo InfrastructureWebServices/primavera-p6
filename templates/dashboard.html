@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard</title>
+    {% include 'headers.html' %}
+</head>
+
+<body>
+    <div class="container">
+        <h1>Dashboard</h1>
+        <div class="row">
+            <div class="col s12">
+                <h3>Instructions</h3>
+                <h4><a href="{{base_url}}instructions">Instructions</a></h4>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <h3>Packages</h3>
+            </div>
+            <div class="col s12">
+                <h4><a href="{{base_url}}handover-packages/">Handover Packages</a></h4>
+            </div>
+            <div class="col s12">
+                <h4><a href="{{base_url}}design-packages/">Design Packages</a></h4>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <h3>Configure</h3>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <button class="btn teal waves-light waves-effect" onclick="window.location='{{base_url}}template'">Template Package Data</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <form action="{{base_url}}upload" method="POST" enctype="multipart/form-data">
+                    <div class="file-field input-field">
+                        <div class="btn grey waves-light waves-effect"">
+                            <span>Upload Pacakage Data</span>
+                            <input type="file" name="file">
+                        </div>
+                        <div class="file-path-wrapper">
+                            <input class="file-path validate" type="text">
+                        </div>
+                    </div>
+                    <button class="btn blue waves-light waves-effect" type="submit">Upload</button>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <button class="btn teal waves-light waves-effect" onclick="window.location='{{base_url}}download'">Download
+                    Package Data</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <h3>Data</h3>
+            </div>
+            <div class="col s12">
+                <button class="btn green waves-light waves-effect" onclick="window.location='{{base_url}}sync'">Sync Data</button>
+                <p>Last synced: {{last_synced}}</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

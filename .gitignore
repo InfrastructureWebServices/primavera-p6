@@ -1,0 +1,14 @@
+*.pyc
+__pycache__
+*.log
+*.env
+output
+archive
+test_data
+username.txt
+password.txt
+geckodriver
+completed_worklots
+template.xlsx
+last_synced.txt
+data

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Package {{name}}</title>
+    {% include 'headers.html' %}
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Package {{package.name}}</h1>
+        <p>Back to <a href="{{base_url}}">Dashboard</a></p>
+        <div class="row">
+            <div class="col s12">
+                <button class="btn waves-effect waves-light" onclick="window.location='./{{package.name}}/prepare-download'">Download</button>
+            </div>
+            <div class="col s12">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for worklot in package.worklots %}
+                        <tr>
+                            <td>
+                                <a href="https://auweb06.au.itwocx.com/cxR/cx.aspx?j=GLU-VCA&t=LOT&i={{worklot.document.Id}}&mdu=COR">{{worklot.Reference}}</a>
+                            </td>
+                            <td>
+                                {{worklot.document.Title}}
+                            </td>
+                            <td>
+                                {{worklot.document.StatusName}}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+</body>
