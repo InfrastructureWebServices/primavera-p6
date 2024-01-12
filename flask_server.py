@@ -1,6 +1,5 @@
 # modules
 from flask import Flask, request, Response, redirect, send_from_directory, render_template, send_file, jsonify
-from werkzeug.utils import secure_filename
 from time import sleep
 import threading
 import queue
@@ -31,13 +30,11 @@ base_url = "/index/services/rpv/"
 # flask app
 app = Flask(__name__)
 
-@app.before_request
-def auth():
+def auth(request):
     request.session = engine.SessionStore(request.cookies.get(settings.SESSION_COOKIE_NAME))
     user = get_user(request)
-    if not user.is_authenticated:
-        return redirect('/index/signin')
-
+    user_groups = list(user.groups.values_list('name', flat=True))
+    return (user.is_authenticated and "rpv" in user_groups)
 
 
 @app.route('/favicon.ico')
@@ -50,6 +47,7 @@ def send_report(path):
 
 @app.route('/')
 def dashboard():
+    if not auth(request): return render_template('403.html', base_url=base_url)
     if path.exists(path.join(app.root_path, 'last_synced.txt')):
         with open(path.join(app.root_path, 'last_synced.txt')) as f:
             last_synced = f.read()
@@ -59,19 +57,23 @@ def dashboard():
 
 @app.route('/instructions')
 def instructions():
+    if not auth(request): return render_template('403.html', base_url=base_url)
     return render_template('instructions.html', base_url=base_url)
 
 @app.route('/template')
 def get_template():
+    if not auth(request): return Response(status=403)
     generate_template()
     return send_file(path.join(app.root_path, 'template.xlsx'))
 
 @app.route('/download')
 def export_worklots_by_pacakges():
+    if not auth(request): return Response(status=403)
     return send_file(path.join(app.root_path, 'worklots_by_packages.xlsx'))
 
 @app.route('/upload', methods=["POST"])
 def import_worklots_by_packages():
+    if not auth(request): return render_template('403.html', base_url=base_url)
     if 'file' in request.files:
         save_path = path.join(app.root_path, 'worklots_by_packages.xlsx')
         file = request.files['file']
@@ -82,6 +84,7 @@ def import_worklots_by_packages():
 
 @app.route('/sync')
 def sync_worklots():
+    if not auth(request): return render_template('403.html', base_url=base_url)
     if sync_queue.unfinished_tasks == 0:
         sync_queue.put(sync)
     return render_template('sync.html', base_url=base_url)
@@ -91,6 +94,7 @@ def sync_worklots():
 @app.route('/design-packages/', defaults={"code": None, "name": "Design"})
 @app.route('/design-packages/<code>', defaults={"name": "Design"})
 def packages(code, name):
+    if not auth(request): return render_template('403.html', base_url=base_url)
     if code == None:
         headers = [
             ['%s Package' % name, 'Open', 'For Approval', 'Closed', 'Approved', 'Withdrawn']
@@ -110,6 +114,7 @@ def packages(code, name):
 @app.route('/design-packages/<code>/prepare-download', defaults={"sub_path": "design_packages"})
 @app.route('/handover-packages/<code>/prepare-download', defaults={"sub_path": "handover_packages"})
 def prepare_download_packages(code, sub_path):
+    if not auth(request): return render_template('403.html', base_url=base_url)
     filepath = path.join(app.root_path, 'output', sub_path, "%s.json" % code)
     if path.exists(filepath):
         with open(filepath, 'r') as f:
@@ -124,6 +129,7 @@ def prepare_download_packages(code, sub_path):
 @app.route('/handover-packages/<code>/download')
 @app.route('/design-packages/<code>/download')
 def download_package(code):
+    if not auth(request): return render_template('403.html', base_url=base_url)
     directory = path.join(app.root_path, 'output', 'complete')
     filename = "%s.zip" % code
     filepath = path.join(directory, filename)
@@ -134,6 +140,7 @@ def download_package(code):
 
 @app.route('/cancel')
 def cancel():
+    if not auth(request): return render_template('403.html', base_url=base_url)
     package = request.args.get('package', None)
     if package == None or not package in package_tasks:
         return render_template('404.html')
@@ -143,6 +150,7 @@ def cancel():
 
 @app.route('/status')
 def get_status():
+    if not auth(request): return Response(status=403)
     package = request.args.get('package', None)
     if package != None and package in package_tasks:
         return jsonify(package_tasks[package].progress)
@@ -153,6 +161,7 @@ def get_status():
 
 @app.route('/p6/get-data')
 def get_p6_data():
+    if not auth(request): return Response(status=403)
     test_data_path = path.join(app.root_path, 'data', 'test.json')
     if path.exists(test_data_path):
         with open(test_data_path, 'r') as f:
@@ -166,6 +175,7 @@ def get_p6_data():
 
 @app.route('/p6/')
 def p6_reader():
+    if not auth(request): return render_template('403.html', base_url=base_url)
     return render_template('p6.html', base_url=base_url)
 
 # helper functions
