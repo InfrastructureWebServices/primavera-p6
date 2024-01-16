@@ -31,62 +31,24 @@
 
         #gantt {
             height: 100%;
+            width: 100%;
         }
 
         .dataTables_wrapper {
             min-height: 100%;
         }
-
     </style>
 </head>
 
 <body>
     <div id="gantt">
     </div>
-    <!--<div id="loader">
-        <div class="preloader-wrapper active">
-            <div class="spinner-layer spinner-blue-only">
-                <div class="circle-clipper left">
-                    <div class="circle"></div>
-                </div>
-                <div class="gap-patch">
-                    <div class="circle"></div>
-                </div>
-                <div class="circle-clipper right">
-                    <div class="circle"></div>
-                </div>
-            </div>
-        </div>
-    </div>-->
-
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            $.ajax({ url: "./get-data" }).done(function (data) {
+            $.ajax({ url: "./{{plan_id}}/get" }).done(function (data) {
                 var config = {
-                    type: Gantt.type.ACTIVITY_CHART,
                     data: data,
-                    selection: {
-                        // selectActivities(activities, activity) {
-                        //     console.log('    -> selectActivities');
-                        // },
-                        // unselectActivities(activities) {
-                        //     console.log('    -> unselectActivities');
-                        // },
-                        // activitySelectionChanged(activities, activity) {
-                        //     console.log('    -> activitySelectionChanged');
-                        // },
-                        // selectRows(rows, row) {
-                        //     console.log('    -> selectRows');
-                        // },
-                        // unselectRows(rows, row) {
-                        //     console.log('    -> unselectRows');
-                        // },
-                        rowSelectionChanged(rows, row) {
-                            let start = new Date(row.start).toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric", hour: "numeric", minute: "numeric"})
-                            let end = new Date(row.start).toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric", hour: "numeric", minute: "numeric"})
-                            $('div.toolbar-title').text(`${start} to ${end}`);
-                        }
-                    },
+                    type: Gantt.type.ACTIVITY_CHART,
                     constraints: {
                         renderer: [
                             {
@@ -153,6 +115,7 @@
                         'zoomIn',
                         'zoomOut',
                         'separator',
+                        // User specific label layout
                         {
                             type: 'select',
                             text: 'Show',
@@ -169,7 +132,7 @@
                             },
                         },
                     ],
-                    title: '',
+                    title: 'GLU Program',
                 };
                 globalThis.gantt = new Gantt('gantt', config);
                 //$('#loader').remove();

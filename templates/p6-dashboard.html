@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard</title>
+    {% include 'headers.html' %}
+</head>
+
+<body>
+    <div class="container">
+        <h1>Dashboard</h1>
+        <!-- <div class="row">
+            <div class="col s12">
+                <h3>Instructions</h3>
+                <h4><a href="{{base_url}}instructions">Instructions</a></h4>
+            </div>
+        </div> -->
+        <div class="row">
+            <div class="col s12">
+                <h3>Plans</h3>
+                <!-- {{plans_table}} -->
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Plan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td><a href="./p6/plan/1">GLU Program</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col s12">
+                <button class="btn waves-effect waves-light">Add new plan</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

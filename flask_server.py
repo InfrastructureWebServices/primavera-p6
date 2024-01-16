@@ -27,6 +27,10 @@ engine = import_module(settings.SESSION_ENGINE)
 
 base_url = "/index/services/rpv/"
 
+DEBUG = os.environ.get('DEBUG') != None and os.environ.get('DEBUG') == 'true'
+if DEBUG:
+    base_url = ""
+
 # flask app
 app = Flask(__name__)
 
@@ -34,7 +38,7 @@ def auth(request):
     request.session = engine.SessionStore(request.cookies.get(settings.SESSION_COOKIE_NAME))
     user = get_user(request)
     user_groups = list(user.groups.values_list('name', flat=True))
-    return (user.is_authenticated and "rpv" in user_groups)
+    return (user.is_authenticated and "rpv" in user_groups) or DEBUG
 
 
 @app.route('/favicon.ico')
@@ -45,7 +49,7 @@ def favicon():
 def send_report(path):
     return send_from_directory('public', path)
 
-@app.route('/')
+@app.route('/itwocx')
 def dashboard():
     if not auth(request): return render_template('403.html', base_url=base_url)
     if path.exists(path.join(app.root_path, 'last_synced.txt')):
@@ -55,23 +59,23 @@ def dashboard():
         last_synced = 'Never'
     return render_template('dashboard.html', last_synced=last_synced, base_url=base_url)
 
-@app.route('/instructions')
+@app.route('/itwocx/instructions')
 def instructions():
     if not auth(request): return render_template('403.html', base_url=base_url)
     return render_template('instructions.html', base_url=base_url)
 
-@app.route('/template')
+@app.route('/itwocx/template')
 def get_template():
     if not auth(request): return Response(status=403)
     generate_template()
     return send_file(path.join(app.root_path, 'template.xlsx'))
 
-@app.route('/download')
+@app.route('/itwocx/download')
 def export_worklots_by_pacakges():
     if not auth(request): return Response(status=403)
     return send_file(path.join(app.root_path, 'worklots_by_packages.xlsx'))
 
-@app.route('/upload', methods=["POST"])
+@app.route('/itwocx/upload', methods=["POST"])
 def import_worklots_by_packages():
     if not auth(request): return render_template('403.html', base_url=base_url)
     if 'file' in request.files:
@@ -82,17 +86,17 @@ def import_worklots_by_packages():
     else:
         return render_template('message.html', message="Something went wrong!", base_url=base_url)
 
-@app.route('/sync')
+@app.route('/itwocx/sync')
 def sync_worklots():
     if not auth(request): return render_template('403.html', base_url=base_url)
     if sync_queue.unfinished_tasks == 0:
         sync_queue.put(sync)
     return render_template('sync.html', base_url=base_url)
 
-@app.route('/handover-packages/', defaults={"code": None, "name": "Handover"})
-@app.route('/handover-packages/<code>', defaults={"name": "Handover"})
-@app.route('/design-packages/', defaults={"code": None, "name": "Design"})
-@app.route('/design-packages/<code>', defaults={"name": "Design"})
+@app.route('/itwocx/handover-packages/', defaults={"code": None, "name": "Handover"})
+@app.route('/itwocx/handover-packages/<code>', defaults={"name": "Handover"})
+@app.route('/itwocx/design-packages/', defaults={"code": None, "name": "Design"})
+@app.route('/itwocx/design-packages/<code>', defaults={"name": "Design"})
 def packages(code, name):
     if not auth(request): return render_template('403.html', base_url=base_url)
     if code == None:
@@ -111,8 +115,8 @@ def packages(code, name):
         else:
             return render_template('404.html', base_url=base_url)
 
-@app.route('/design-packages/<code>/prepare-download', defaults={"sub_path": "design_packages"})
-@app.route('/handover-packages/<code>/prepare-download', defaults={"sub_path": "handover_packages"})
+@app.route('/itwocx/design-packages/<code>/prepare-download', defaults={"sub_path": "design_packages"})
+@app.route('/itwocx/handover-packages/<code>/prepare-download', defaults={"sub_path": "handover_packages"})
 def prepare_download_packages(code, sub_path):
     if not auth(request): return render_template('403.html', base_url=base_url)
     filepath = path.join(app.root_path, 'output', sub_path, "%s.json" % code)
@@ -126,8 +130,8 @@ def prepare_download_packages(code, sub_path):
     else:
         return render_template('404.html', base_url=base_url)
 
-@app.route('/handover-packages/<code>/download')
-@app.route('/design-packages/<code>/download')
+@app.route('/itwocx/handover-packages/<code>/download')
+@app.route('/itwocx/design-packages/<code>/download')
 def download_package(code):
     if not auth(request): return render_template('403.html', base_url=base_url)
     directory = path.join(app.root_path, 'output', 'complete')
@@ -138,7 +142,7 @@ def download_package(code):
     else:
         return render_template('404.html', base_url=base_url)
 
-@app.route('/cancel')
+@app.route('/itwocx/cancel')
 def cancel():
     if not auth(request): return render_template('403.html', base_url=base_url)
     package = request.args.get('package', None)
@@ -148,7 +152,7 @@ def cancel():
         package_tasks[package].cancel()
         return render_template('message.html', message="Cancelled", base_url=base_url)
 
-@app.route('/status')
+@app.route('/itwocx/status')
 def get_status():
     if not auth(request): return Response(status=403)
     package = request.args.get('package', None)
@@ -159,24 +163,30 @@ def get_status():
         return jsonify(sync.progress)
     return Response(status=403)
 
-@app.route('/p6/get-data')
-def get_p6_data():
+@app.route('/p6')
+def p6_dashboard():
+    if not auth(request): return render_template('403.html', base_url=base_url)
+    return render_template('p6-dashboard.html', base_url=base_url)
+
+@app.route('/p6/plan/<plan_id>')
+def p6_reader(plan_id):
+    if not auth(request): return render_template('403.html', base_url=base_url)
+    return render_template('p6-viewer.html', plan_id=plan_id, base_url=base_url)
+
+@app.route('/p6/plan/<plan_id>/get')
+def get_p6_data(plan_id):
     if not auth(request): return Response(status=403)
-    test_data_path = path.join(app.root_path, 'data', 'test.json')
-    if path.exists(test_data_path):
+    test_data_path = path.join(app.root_path, 'data', 'output.json')
+    # if path.exists(test_data_path):
+    if path.exists(test_data_path) and not DEBUG:
         with open(test_data_path, 'r') as f:
             test_data = json.loads(f.read())
     else:
-        p6_reader = P6Reader(path.join(app.root_path, 'data', 'example.xer'))
+        p6_reader = P6Reader(path.join(app.root_path, 'data', '231201 GLU Program v2.xer'))
         test_data = p6_reader.get_schedule_data()
         with open(test_data_path, 'w') as f:
-            json.dumps(test_data, index='\t')
+            f.write(json.dumps(test_data, indent='\t'))
     return jsonify(test_data) 
-
-@app.route('/p6/')
-def p6_reader():
-    if not auth(request): return render_template('403.html', base_url=base_url)
-    return render_template('p6.html', base_url=base_url)
 
 # helper functions
 def format_sse(data: str, event=None) -> str:
