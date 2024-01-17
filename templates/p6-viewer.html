@@ -3,16 +3,6 @@
 <head>
     <title>Primavera P6 Viewer</title>
     {% include 'headers.html' %}
-    <script src=" https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js "></script>
-    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-    <link href="http://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" />
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"
-        integrity="sha512-XHDcSyqhOoO2ocB7sKOCJEkUjw/pQCJViP1ynpy+EGh/LggzrP6U/V3a++LQTnZT7sCQKeHRyWHfhN2afjXjCg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css"
-        integrity="sha512-8OVtKyemDe8Koi/74dnSJughhkwnzqq217zUtUumyvx0Z0kF6H0YYFobH2kEYjKMNq2xNQyN64dnleqecTSL0A=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script src="https://cdn.jsdelivr.net/npm/ibm-gantt-chart@0.5.29/dist/ibm-gantt-chart.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/ibm-gantt-chart@0.5.29/dist/ibm-gantt-chart.min.css" rel="stylesheet">
@@ -45,98 +35,97 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            $.ajax({ url: "./{{plan_id}}/get" }).done(function (data) {
-                var config = {
-                    data: data,
-                    type: Gantt.type.ACTIVITY_CHART,
-                    constraints: {
-                        renderer: [
-                            {
-                                selector(object, ctx) {
-                                    return ctx.gantt.layoutLabelMode === 'right';
-                                },
-                                nodeLabelLayout: 'right',
-                            },
-                            {
-                                selector(object, ctx) {
-                                    return ctx.gantt.layoutLabelMode === 'left';
-                                },
-                                nodeLabelLayout: 'left',
-                            },
-                            {
-                                selector(object, ctx) {
-                                    return ctx.gantt.layoutLabelMode === 'noLinkCrossing';
-                                },
-                                nodeLabelLayout: {
-                                    padding: 12, // Horizontal padding between the label and the node or link
-                                    // If possible place the node label in a free space between a node/link and a link.
-                                    //      If several holes are possible, choose the one the closest from the node.
-                                    // If not possible, place the text after the last link from the node
-                                    startLayout(act, labelWidth, ctx) {
-                                        this.closestHole = null;
-                                        this.furtherLeft = this.padding;
-                                        this.furtherRight = this.padding;
-                                        this.w = labelWidth + this.padding;
-                                    },
-                                    nextLink(act, left, linkX, previousX, nodeX, ctx) {
-                                        if (Math.abs(linkX - previousX) >= this.w) {
-                                            const newHole = left
-                                                ? -Math.abs(nodeX - previousX) - this.padding
-                                                : Math.abs(previousX - nodeX) + this.padding;
-                                            if (this.closestHole === null || Math.abs(newHole) < Math.abs(this.closestHole)) {
-                                                this.closestHole = newHole + (left ? -this.padding : this.padding);
-                                            }
-                                        }
-                                        // Keep track of the position of the furthest link from the node on this side
-                                        else if (left) {
-                                            this.furtherLeft = Math.max(Math.abs(nodeX - linkX) + this.padding, this.furtherLeft);
-                                        } else {
-                                            this.furtherRight = Math.max(Math.abs(linkX - nodeX) + this.padding, this.furtherRight);
-                                        }
-                                    },
-                                    getNodeToLabelSpacing(act, bbox, textWidth, ctx) {
-                                        return this.closestHole !== null
-                                            ? this.closestHole
-                                            : this.furtherLeft < this.furtherRight
-                                                ? -this.furtherLeft
-                                                : this.furtherRight;
-                                    },
-                                },
-                            },
-                        ],
+            var config = {
+                data: {
+                    all: {
+                        url: "./{{plan_id}}/get",
+                        success: function (data) {
+                            return data; // Return the processed model
+                        }
                     },
-                    toolbar: [
-                        'title',
-                        'search',
-                        'separator',
-                        'mini',
-                        'separator',
-                        'fitToContent',
-                        'zoomIn',
-                        'zoomOut',
-                        'separator',
-                        // User specific label layout
-                        {
-                            type: 'select',
-                            text: 'Show',
-                            options: [
-                                { value: 'default', text: 'Default' },
-                                { value: 'right', text: 'Right' },
-                                { value: 'left', text: 'Left' },
-                                { value: 'noLinkCrossing', text: 'No link crossing' },
-                            ],
-                            onchange(value, ctx) {
-                                const { gantt } = ctx;
-                                gantt.layoutLabelMode = value;
-                                gantt.draw(true);
-                            },
+                    resources: {
+                        data: function (data) { 
+                            return data.resources;
                         },
-                    ],
-                    title: 'GLU Program',
-                };
-                globalThis.gantt = new Gantt('gantt', config);
-                //$('#loader').remove();
-            });
+                        parent: 'parent',
+                        name: 'name',
+                        id: 'id',
+                    },
+                    reservations: {
+                        data: function (data) { 
+                            return data.reserverations;
+                        },
+                        activity: 'activity',
+                        resource: 'resource',
+                    },
+                    activities: {
+                        data: function (data) {
+                            debugger;
+                            return data.activities;
+                        },
+                        start: function (activity) {
+                            if (activity.task_id) { 
+                                return activity.target_start_date;
+                            } else { 
+                                return null;
+                            }
+                        },
+                        end: function (activity) {
+                            if (activity.task_id) { 
+                                return activity.target_end_date;
+                            } else { 
+                                return null;
+                            }
+                        },
+                        parent: function (activity) {
+                            if (activity.task_id) { 
+                                return activity.wbs_id;
+                            } else { 
+                                return activity.parent_wbs_id;
+                            }
+                            
+                        },
+                        name: function (activity) {
+                            if (activity.task_id) { 
+                                return activity.task_name;
+                            } else { 
+                                return activity.wbs_name;
+                            }
+                        },
+                        id: function (activity) {
+                            if (activity.task_id) { 
+                                return activity.task_id;
+                            } else { 
+                                return activity.wbs_id;
+                            }
+                        }
+                    },
+                    constraints: {
+                        data: function (data) { 
+                            return data.constraints;
+                        },
+                        from: 'from',
+                        to: 'to',
+                        type: 'type',
+                    }
+                },
+                type: Gantt.type.ACTIVITY_CHART,
+                toolbar: [
+                    'title',
+                    'search',
+                    'separator',
+                    'mini',
+                    'separator',
+                    'fitToContent',
+                    'zoomIn',
+                    'zoomOut',
+                    'separator'
+                ],
+                title: 'GLU Program',
+            };
+
+            globalThis.gantt = new Gantt('gantt', config);
+            //$('#loader').remove();
         });
 
 

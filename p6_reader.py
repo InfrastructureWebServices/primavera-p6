@@ -224,31 +224,10 @@ class P6Reader:
         # self.activities_task_ids = list(map(lambda activity: activity.get('task_id'), self.clean_activities))
         # dependencies = self.get_precedents()
         return {
-            "activities": {
-                "data": total_activities,
-                "id": "id",
-                "start": "target_start_date",
-                "end": "target_end_date",
-                "name": "name",
-                "parent": "parent"
-            },
-            "resources": {
-                "data": [],
-                "id": "rsrc_id",
-                "name": "rsrc_name",
-                "parent": "parent"
-            },
-            "constraints": {
-                "data": [],
-                "from": "from",
-                "to": "to",
-                "type": "type"
-            },
-            "reservations": {
-                "data": [],
-                "activity": "activity",
-                "resource": "resource"
-            },
+            "activities": total_activities,
+            "resources": [],
+            "constraints": [],
+            "reservations": []
         }
 if __name__ == "__main__":
     p6_reader = P6Reader(path.join(path.dirname(__file__), 'data', '231201 GLU Program v2.xer'))

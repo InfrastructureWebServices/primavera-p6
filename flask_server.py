@@ -9,6 +9,7 @@ from os import path
 import json
 import re
 
+
 # local modules
 from package import Package
 from sync_worklots import Sync
@@ -16,29 +17,30 @@ sync = Sync()
 from template import generate_template
 from p6_reader import P6Reader
 
-# django authentication
-from importlib import import_module
-sys.path.insert(0, os.environ.get('IMPORT_DJANGO'))
-import django
-django.setup()
-from django.conf import settings
-from django.contrib.auth.middleware import get_user
-engine = import_module(settings.SESSION_ENGINE)
+# # django authentication
+# from importlib import import_module
+# sys.path.insert(0, os.environ.get('IMPORT_DJANGO'))
+# import django
+# django.setup()
+# from django.conf import settings
+# from django.contrib.auth.middleware import get_user
+# engine = import_module(settings.SESSION_ENGINE)
 
 base_url = "/index/services/rpv/"
 
-DEBUG = os.environ.get('DEBUG') != None and os.environ.get('DEBUG') == 'true'
-if DEBUG:
-    base_url = ""
+# DEBUG = os.environ.get('DEBUG') != None and os.environ.get('DEBUG') == 'true'
+# if DEBUG:
+#     base_url = ""
 
 # flask app
 app = Flask(__name__)
 
 def auth(request):
-    request.session = engine.SessionStore(request.cookies.get(settings.SESSION_COOKIE_NAME))
-    user = get_user(request)
-    user_groups = list(user.groups.values_list('name', flat=True))
-    return (user.is_authenticated and "rpv" in user_groups) or DEBUG
+    # request.session = engine.SessionStore(request.cookies.get(settings.SESSION_COOKIE_NAME))
+    # user = get_user(request)
+    # user_groups = list(user.groups.values_list('name', flat=True))
+    # return (user.is_authenticated and "rpv" in user_groups) or DEBUG
+    return True
 
 
 @app.route('/favicon.ico')
@@ -177,11 +179,11 @@ def p6_reader(plan_id):
 def get_p6_data(plan_id):
     if not auth(request): return Response(status=403)
     test_data_path = path.join(app.root_path, 'data', 'output.json')
-    # if path.exists(test_data_path):
-    if path.exists(test_data_path) and not DEBUG:
+    if False and path.exists(test_data_path):
+    # if path.exists(test_data_path) and not DEBUG:
         with open(test_data_path, 'r') as f:
             test_data = json.loads(f.read())
-    else:
+    elif True:
         p6_reader = P6Reader(path.join(app.root_path, 'data', '231201 GLU Program v2.xer'))
         test_data = p6_reader.get_schedule_data()
         with open(test_data_path, 'w') as f:
