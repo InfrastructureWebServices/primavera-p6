@@ -4,8 +4,8 @@
     <title>Primavera P6 Viewer</title>
     {% include 'headers.html' %}
 
-    <script src="https://cdn.jsdelivr.net/npm/ibm-gantt-chart@0.5.29/dist/ibm-gantt-chart.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/ibm-gantt-chart@0.5.29/dist/ibm-gantt-chart.min.css" rel="stylesheet">
+    <script src="/public/modules/ibm-gantt-chart-0.5.29/ibm-gantt-chart.js"></script>
+    <link href="/public/modules/ibm-gantt-chart-0.5.29/ibm-gantt-chart.css" rel="stylesheet">
 
     <!--  Page styles  -->
     <style>
@@ -60,7 +60,7 @@
                     },
                     activities: {
                         data: function (data) {
-                            debugger;
+                            // debugger;
                             return data.activities;
                         },
                         start: function (activity) {
