@@ -53,7 +53,7 @@
                     },
                     reservations: {
                         data: function (data) { 
-                            return data.reserverations;
+                            return data.reservations;
                         },
                         activity: 'activity',
                         resource: 'resource',
@@ -78,12 +78,7 @@
                             }
                         },
                         parent: function (activity) {
-                            if (activity.task_id) { 
-                                return activity.wbs_id;
-                            } else { 
-                                return activity.parent_wbs_id;
-                            }
-                            
+                            return activity.parent;
                         },
                         name: function (activity) {
                             if (activity.task_id) { 

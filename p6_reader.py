@@ -185,15 +185,13 @@ class P6Reader:
             wbs_node['parent'] = wbs_node['parent_wbs_id']
             # and any parents
             parent = wbs_node['parent_wbs_id']
-            if parent in self.wbs_index and not wbs_id in used_wbs_ids:
-                resource['wbs_ids'].append(wbs_id)
-                resource['wbs'].append(wbs_node)
             if not parent in self.wbs_index:
                 wbs_node['parent'] = None
+            if not wbs_id in resource['wbs_ids']:
+                resource['wbs_ids'].append(wbs_id)
                 resource['wbs'].append(wbs_node)
+            # and ancestors
             while parent in self.wbs_index:
-                if parent == '10962001':
-                    break;
                 parent_node_index = self.wbs_index.index(parent)
                 parent_node = self.wbs[parent_node_index]
                 parent_node['id'] = parent_node['wbs_id']
@@ -202,10 +200,11 @@ class P6Reader:
                 parent_node['name'] = parent_node['wbs_name']
                 parent_node['parent'] = parent_node['parent_wbs_id']
                 parent = parent_node['parent_wbs_id']
-                if not parent in used_wbs_ids:
+                if not parent in self.wbs_index:
                     parent_node['parent'] = None
-                resource['wbs_ids'].append(parent)
-                resource['wbs'].append(parent_node)
+                if parent not in resource['wbs_ids']:
+                    resource['wbs_ids'].append(parent)
+                    resource['wbs'].append(parent_node)
         # def get_wbs_entry_by_id(id):
         #     index = self.wbs_index.index(id)
         #     return self.wbs[index]
