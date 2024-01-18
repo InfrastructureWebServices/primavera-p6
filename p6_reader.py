@@ -6,7 +6,7 @@ class P6Reader:
     def __init__(self, filepath):
         self.xer = XerReader(filepath).parse_tables()
         self.projects = self.xer.get('PROJECT').entries
-        self.project_index = list(map(lambda project: project.get('task_id'), self.projects))
+        self.project_index = list(map(lambda project: project.get('proj_id'), self.projects))
         self.activities = self.xer.get('TASK').entries
         self.activity_index = list(map(lambda activity: activity.get('task_id'), self.activities))
         self.wbs = self.xer.get('PROJWBS').entries
@@ -183,14 +183,13 @@ class P6Reader:
             wbs_node['target_end_date'] = None
             wbs_node['name'] = wbs_node['wbs_name']
             wbs_node['parent'] = wbs_node['parent_wbs_id']
-            # and any parents
-            parent = wbs_node['parent_wbs_id']
-            if not parent in self.wbs_index:
+            if not wbs_node['parent_wbs_id'] in self.wbs_index:
                 wbs_node['parent'] = None
             if not wbs_id in resource['wbs_ids']:
                 resource['wbs_ids'].append(wbs_id)
                 resource['wbs'].append(wbs_node)
-            # and ancestors
+            parent = wbs_node['wbs_id']
+            # and any parents
             while parent in self.wbs_index:
                 parent_node_index = self.wbs_index.index(parent)
                 parent_node = self.wbs[parent_node_index]
@@ -202,31 +201,44 @@ class P6Reader:
                 parent = parent_node['parent_wbs_id']
                 if not parent in self.wbs_index:
                     parent_node['parent'] = None
-                if parent not in resource['wbs_ids']:
-                    resource['wbs_ids'].append(parent)
+                if parent_node['wbs_id'] not in resource['wbs_ids']:
+                    resource['wbs_ids'].append(parent_node['wbs_id'])
                     resource['wbs'].append(parent_node)
+            
         # def get_wbs_entry_by_id(id):
         #     index = self.wbs_index.index(id)
         #     return self.wbs[index]
         # used_wbs = list(map(get_wbs_entry_by_id, used_wbs_ids))
-
+        resources_with_activities = []
         for resource in self.resources:
-            resource['parent'] = None
-            if resource['rsrc_name'] != 'Jago Lau - EXT': continue
-            activities = resource['activities']
-            wbs = resource['wbs']
-            total_activities = activities + wbs
-            used_resources.append(resource)
-        
+            if 'activities' in resource:
+                resource['parent'] = None
+                resource['activities'] += resource['wbs']
+                resources_with_activities.append(resource)
+        resources_with_activities_index = list(map(lambda resource: resource.get('rsrc_id'), resources_with_activities))
+
+        # get all projects
+        # get 
+
         # self.clean_activities = self.get_activites()
         # self.activities_ids = list(map(lambda activity: activity.get('id'), self.clean_activities))
         # self.activities_task_ids = list(map(lambda activity: activity.get('task_id'), self.clean_activities))
         # dependencies = self.get_precedents()
+                 
+        
+
+
         return {
-            "activities": total_activities,
-            "resources": [],
-            "constraints": [],
-            "reservations": []
+            # "activities": self.activities,
+            # "activity_index": self.activity_index,
+            # "precedents": self.precedents,
+            # "precedent_index": self.precedent_index,
+            "projects": self.projects,
+            "project_index": self.project_index,
+            "resources": resources_with_activities,
+            "resource_index": resources_with_activities_index,
+            # "wbs": self.wbs,
+            # "wbs_index": self.wbs_index,
         }
 if __name__ == "__main__":
     p6_reader = P6Reader(path.join(path.dirname(__file__), 'data', '231201 GLU Program v2.xer'))

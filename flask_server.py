@@ -165,30 +165,85 @@ def get_status():
         return jsonify(sync.progress)
     return Response(status=403)
 
+plans = [
+    { "id": '1', "name": "GLU Project", "file": "output.json"}
+]
+
 @app.route('/p6')
 def p6_dashboard():
     if not auth(request): return render_template('403.html', base_url=base_url)
-    return render_template('p6-dashboard.html', base_url=base_url)
+    return render_template('p6-dashboard.html', base_url=base_url, plans=plans)
 
 @app.route('/p6/plan/<plan_id>')
-def p6_reader(plan_id):
+def p6_plan_list(plan_id):
     if not auth(request): return render_template('403.html', base_url=base_url)
-    return render_template('p6-viewer.html', plan_id=plan_id, base_url=base_url)
+    plan_ids = list(map(lambda o: o['id'], plans))
+    if plan_id in plan_ids:
+        plan_index = plan_ids.index(plan_id)
+        plan = plans[plan_index]
+        plan_data_path = path.join(app.root_path, 'data', plan['file'])
+        if path.exists(plan_data_path):
+            with open(plan_data_path, 'r') as f:
+                plan = json.loads(f.read())
+            return render_template('p6-project-list.html', plan_id=plan_id, plan=plan, base_url=base_url)
+    return render_template('403.html', base_url=base_url)
 
-@app.route('/p6/plan/<plan_id>/get')
-def get_p6_data(plan_id):
+@app.route('/p6/plan/<plan_id>/<project_id>')
+def p6_project_list(plan_id, project_id):
+    if not auth(request): return render_template('403.html', base_url=base_url)
+    plan_ids = list(map(lambda o: o['id'], plans))
+    if plan_id in plan_ids:
+        plan_index = plan_ids.index(plan_id)
+        plan = plans[plan_index]
+        plan_data_path = path.join(app.root_path, 'data', plan['file'])
+        if path.exists(plan_data_path):
+            with open(plan_data_path, 'r') as f:
+                plan = json.loads(f.read())
+            if project_id in plan['project_index']:
+                project = plan['projects'][plan['project_index'].index(project_id)]
+                return render_template('p6-resource-list.html', plan_id=plan_id, project_id=project_id, project=plan, base_url=base_url)
+    return render_template('403.html', base_url=base_url)
+
+@app.route('/p6/plan/<plan_id>/<project_id>/<resource_id>')
+def p6_resource_reader(plan_id, project_id, resource_id):
+    if not auth(request): return render_template('403.html', base_url=base_url)
+    plan_ids = list(map(lambda o: o['id'], plans))
+    if plan_id in plan_ids:
+        plan_index = plan_ids.index(plan_id)
+        plan = plans[plan_index]
+        plan_data_path = path.join(app.root_path, 'data', plan['file'])
+        if path.exists(plan_data_path):
+            with open(plan_data_path, 'r') as f:
+                plan = json.loads(f.read())
+            if project_id in plan['project_index']:
+                project = plan['projects'][plan['project_index'].index(project_id)] # needs a better handling
+                if resource_id in plan['resource_index']:
+                    resource = plan['resources'][plan['resource_index'].index(resource_id)]
+                    return render_template('p6-viewer.html', plan_id=plan_id, project_id=project_id, resource_id=resource_id, resource=resource, base_url=base_url)
+    return render_template('403.html', base_url=base_url)
+
+# p6_reader = P6Reader(path.join(app.root_path, 'data', '231201 GLU Program v2.xer'))
+# test_data = p6_reader.get_schedule_data()
+# with open(test_data_path, 'w') as f:
+#     f.write(json.dumps(test_data, indent='\t'))
+
+@app.route('/p6/plan/<plan_id>/<project_id>/<resource_id>/get')
+def get_p6_data(plan_id, project_id, resource_id):
     if not auth(request): return Response(status=403)
-    test_data_path = path.join(app.root_path, 'data', 'output.json')
-    if False and path.exists(test_data_path):
-    # if path.exists(test_data_path) and not DEBUG:
-        with open(test_data_path, 'r') as f:
-            test_data = json.loads(f.read())
-    elif True:
-        p6_reader = P6Reader(path.join(app.root_path, 'data', '231201 GLU Program v2.xer'))
-        test_data = p6_reader.get_schedule_data()
-        with open(test_data_path, 'w') as f:
-            f.write(json.dumps(test_data, indent='\t'))
-    return jsonify(test_data) 
+    plan_ids = list(map(lambda o: o['id'], plans))
+    if plan_id in plan_ids:
+        plan_index = plan_ids.index(plan_id)
+        plan = plans[plan_index]
+        plan_data_path = path.join(app.root_path, 'data', plan['file'])
+        if path.exists(plan_data_path):
+            with open(plan_data_path, 'r') as f:
+                plan = json.loads(f.read())
+            if project_id in plan['project_index']:
+                project = plan['projects'][plan['project_index'].index(project_id)] # needs a better handling
+                if resource_id in plan['resource_index']:
+                    resource = plan['resources'][plan['resource_index'].index(resource_id)]
+                    return jsonify(resource)
+    if not auth(request): return Response(status=400)
 
 # helper functions
 def format_sse(data: str, event=None) -> str:

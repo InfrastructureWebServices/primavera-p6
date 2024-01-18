@@ -37,66 +37,77 @@
             var config = {
                 data: {
                     all: {
-                        url: "./{{plan_id}}/get",
+                        url: "./{{resource_id}}/get",
                         success: function (data) {
                             return data; // Return the processed model
                         }
                     },
                     resources: {
                         data: function (data) { 
-                            return data.resources;
+                            return [data];
                         },
                         parent: 'parent',
-                        name: 'name',
-                        id: 'id',
+                        name: 'rsrc_name',
+                        id: 'rsrc_id',
                     },
                     reservations: {
                         data: function (data) { 
-                            return data.reservations;
+                            return [];
                         },
                         activity: 'activity',
                         resource: 'resource',
                     },
                     activities: {
                         data: function (data) {
-                            // debugger;
-                            return data.activities;
+                            value = data.activities;
+                            if (typeof value == 'undefined') debugger;
+                            return value;
                         },
                         start: function (activity) {
                             if (activity.task_id) { 
-                                return activity.target_start_date;
+                                value = activity.target_start_date;
                             } else { 
-                                return null;
+                                value = null;
                             }
+                            if (typeof value == 'undefined') debugger;
+                            return value;
                         },
                         end: function (activity) {
                             if (activity.task_id) { 
-                                return activity.target_end_date;
+                                value = activity.target_end_date;
                             } else { 
-                                return null;
+                                value = null;
                             }
+                            if (typeof value == 'undefined') debugger;
+                            return value;
                         },
                         parent: function (activity) {
-                            return activity.parent;
+                            value = activity.parent;
+                            if (typeof value == 'undefined') debugger;
+                            return value;
                         },
                         name: function (activity) {
                             if (activity.task_id) { 
-                                return activity.task_name;
+                                value = activity.task_name;
                             } else { 
-                                return activity.wbs_name;
+                                value = activity.wbs_name;
                             }
+                            if (typeof value == 'undefined') debugger;
+                            return value;
                         },
                         id: function (activity) {
                             if (activity.task_id) { 
-                                return activity.task_id;
+                                value = activity.task_id;
                             } else { 
-                                return activity.wbs_id;
+                                value = activity.wbs_id;
                             }
+                            if (typeof value == 'undefined') debugger;
+                            return value;
                         }
                     },
                     constraints: {
                         data: function (data) { 
-                            return data.constraints;
+                            return [];
                         },
                         from: 'from',
                         to: 'to',

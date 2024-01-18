@@ -17,7 +17,7 @@
         </div> -->
         <div class="row">
             <div class="col s12">
-                <h3>Plans</h3>
+                <h3>Projects</h3>
                 <!-- {{plans_table}} -->
                 <table>
                     <thead>
@@ -27,17 +27,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for plan in plans %}
+                        {% for project in plan.projects %}
                         <tr>
-                            <td>{{plan.id}}</td>
-                            <td><a href="./p6/plan/{{plan.id}}">{{plan.name}}</a></td>
+                            <td>{{project.proj_id}}</td>
+                            <td><a href="./{{plan_id}}/{{project.proj_id}}">{{project.proj_short_name}}</a></td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-            </div>
-            <div class="col s12">
-                <button class="btn waves-effect waves-light">Add new plan</button>
             </div>
         </div>
     </div>
