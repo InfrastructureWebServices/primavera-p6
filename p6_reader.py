@@ -241,7 +241,7 @@ class P6Reader:
             # "wbs_index": self.wbs_index,
         }
 if __name__ == "__main__":
-    p6_reader = P6Reader(path.join(path.dirname(__file__), 'data', '231201 GLU Program v2.xer'))
+    p6_reader = P6Reader(path.join(path.dirname(__file__), 'data', 'example.xer'))
     test_data = p6_reader.get_schedule_data()
     with open(path.join(path.dirname(__file__), 'data', 'output.json'), 'w') as f:
         f.write(json.dumps(test_data, indent='\t'))

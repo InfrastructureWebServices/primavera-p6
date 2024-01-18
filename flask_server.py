@@ -17,14 +17,14 @@ sync = Sync()
 from template import generate_template
 from p6_reader import P6Reader
 
-# # django authentication
-# from importlib import import_module
-# sys.path.insert(0, os.environ.get('IMPORT_DJANGO'))
-# import django
-# django.setup()
-# from django.conf import settings
-# from django.contrib.auth.middleware import get_user
-# engine = import_module(settings.SESSION_ENGINE)
+# django authentication
+from importlib import import_module
+sys.path.insert(0, os.environ.get('IMPORT_DJANGO'))
+import django
+django.setup()
+from django.conf import settings
+from django.contrib.auth.middleware import get_user
+engine = import_module(settings.SESSION_ENGINE)
 
 base_url = "/index/services/rpv/"
 
@@ -36,10 +36,10 @@ base_url = "/index/services/rpv/"
 app = Flask(__name__)
 
 def auth(request):
-    # request.session = engine.SessionStore(request.cookies.get(settings.SESSION_COOKIE_NAME))
-    # user = get_user(request)
-    # user_groups = list(user.groups.values_list('name', flat=True))
-    # return (user.is_authenticated and "rpv" in user_groups) or DEBUG
+    request.session = engine.SessionStore(request.cookies.get(settings.SESSION_COOKIE_NAME))
+    user = get_user(request)
+    user_groups = list(user.groups.values_list('name', flat=True))
+    return (user.is_authenticated and "rpv" in user_groups) or DEBUG
     return True
 
 
