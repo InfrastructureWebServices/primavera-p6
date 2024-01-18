@@ -5,6 +5,7 @@
             "type": "python",
             "request": "launch",
             "module": "flask",
+            "python": "${command:python.interpreterPath}",
             "env": {
                 "FLASK_APP": "flask_server.py",
                 "FLASK_DEBUG": "1"

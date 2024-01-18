@@ -28,9 +28,9 @@ engine = import_module(settings.SESSION_ENGINE)
 
 base_url = "/index/services/rpv/"
 
-# DEBUG = os.environ.get('DEBUG') != None and os.environ.get('DEBUG') == 'true'
-# if DEBUG:
-#     base_url = ""
+DEBUG = os.environ.get('DEBUG') != None and os.environ.get('DEBUG') == 'true'
+if DEBUG:
+    base_url = ""
 
 # flask app
 app = Flask(__name__)
@@ -39,8 +39,7 @@ def auth(request):
     request.session = engine.SessionStore(request.cookies.get(settings.SESSION_COOKIE_NAME))
     user = get_user(request)
     user_groups = list(user.groups.values_list('name', flat=True))
-    return (user.is_authenticated and "rpv" in user_groups) or DEBUG
-    return True
+    return ((user.is_authenticated and "rpv" in user_groups) or DEBUG)
 
 
 @app.route('/favicon.ico')
