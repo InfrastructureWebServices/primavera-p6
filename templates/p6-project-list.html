@@ -7,6 +7,14 @@
 </head>
 
 <body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('.collapsible');
+            var instances = M.Collapsible.init(elems, {
+            // specify options here
+            });
+        });
+    </script>
     <div class="container">
         <!-- <h1>Dashboard</h1> -->
         <!-- <div class="row">
@@ -23,7 +31,7 @@
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Plan</th>
+                            <th>Project</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -8,7 +8,7 @@ import os
 from os import path
 import json
 import re
-
+import xml.etree.ElementTree as ET
 
 # local modules
 from package import Package
@@ -187,6 +187,31 @@ def p6_plan_list(plan_id):
             return render_template('p6-project-list.html', plan_id=plan_id, plan=plan, base_url=base_url)
     return render_template('403.html', base_url=base_url)
 
+def render_resource_tree(resource_tree, project_id):
+    def recurse(parent_node):
+        ul = ET.Element('ul', { 'class': 'collapsible popout'})
+        for child_node in parent_node['resources']:
+            li = ET.Element('li')
+            href = "./%s/%s" % (project_id, child_node['rsrc_id'])
+            anchor = ET.Element('a', { 'href': href})
+            anchor.text = child_node['rsrc_name']
+            header = ET.Element('div', { 'class': 'collapsible-header'})
+            header.append(anchor)
+            if 'resources' in child_node:
+                body = ET.Element('div', { 'class': 'collapsible-body'})
+                child_ul = recurse(child_node)
+                body.append(child_ul)
+                li.append(header)
+                li.append(body)
+            else:
+                li.append(header)
+            ul.append(li)
+        return ul
+    ul = recurse(resource_tree)
+    resource_list = ET.tostring(ul, 'unicode')
+    return resource_list
+            
+
 @app.route('/p6/plan/<plan_id>/<project_id>')
 def p6_project_list(plan_id, project_id):
     if not auth(request): return render_template('403.html', base_url=base_url)
@@ -200,7 +225,9 @@ def p6_project_list(plan_id, project_id):
                 plan = json.loads(f.read())
             if project_id in plan['project_index']:
                 project = plan['projects'][plan['project_index'].index(project_id)]
-                return render_template('p6-resource-list.html', plan_id=plan_id, project_id=project_id, project=plan, base_url=base_url)
+                resource_tree = {'resources': plan['resource_tree']}
+                resource_tree = render_resource_tree(resource_tree, project_id)
+                return render_template('p6-resource-list.html', plan_id=plan_id, project_id=project_id, project=plan, resource_tree=resource_tree, base_url=base_url)
     return render_template('403.html', base_url=base_url)
 
 @app.route('/p6/plan/<plan_id>/<project_id>/<resource_id>')
