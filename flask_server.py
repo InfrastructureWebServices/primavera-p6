@@ -28,12 +28,14 @@ engine = import_module(settings.SESSION_ENGINE)
 
 base_url = "/index/services/rpv/"
 
-DEBUG = os.environ.get('DEBUG') != None and os.environ.get('DEBUG') == 'true'
-if DEBUG:
-    base_url = ""
 
 # flask app
 app = Flask(__name__)
+
+DEBUG = os.environ.get('DEBUG') != None and os.environ.get('DEBUG') == 'true'
+if DEBUG:
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+    base_url = ""
 
 def auth(request):
     request.session = engine.SessionStore(request.cookies.get(settings.SESSION_COOKIE_NAME))
