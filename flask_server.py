@@ -26,7 +26,7 @@ from django.conf import settings
 from django.contrib.auth.middleware import get_user
 engine = import_module(settings.SESSION_ENGINE)
 
-base_url = "/index/services/rpv/"
+base_url = "/private/rpv/"
 
 
 # flask app
@@ -166,112 +166,190 @@ def get_status():
         return jsonify(sync.progress)
     return Response(status=403)
 
-plans = [
-    { "id": '1', "name": "GLU Project", "file": "output.json"}
-]
+def sync_plans_data():
+    with open(os.path.join(app.root_path, 'plans.json'), 'r') as f:
+        plans = json.loads(f.read())
+    return plans
+
+def save_plans_data(plans):
+    with open(os.path.join(app.root_path, 'plans.json'), 'w') as f:
+        f.write(json.dumps(plans, indent="\t"))
 
 @app.route('/p6')
 def p6_dashboard():
     if not auth(request): return render_template('403.html', base_url=base_url)
+    plans = sync_plans_data()
     return render_template('p6-dashboard.html', base_url=base_url, plans=plans)
 
-@app.route('/p6/plan/<plan_id>')
+@app.route('/p6/plan/<int:plan_id>')
 def p6_plan_list(plan_id):
     if not auth(request): return render_template('403.html', base_url=base_url)
+    plans = sync_plans_data()
     plan_ids = list(map(lambda o: o['id'], plans))
     if plan_id in plan_ids:
         plan_index = plan_ids.index(plan_id)
         plan = plans[plan_index]
-        plan_data_path = path.join(app.root_path, 'data', plan['file'])
+        plan_data_path = path.join(app.root_path, 'data', "%s.json" % plan['id'])
         if path.exists(plan_data_path):
             with open(plan_data_path, 'r') as f:
                 plan = json.loads(f.read())
             return render_template('p6-project-list.html', plan_id=plan_id, plan=plan, base_url=base_url)
-    return render_template('403.html', base_url=base_url)
+    return render_template('403.html', base_url=base_url) # send a message that there are no resources
 
 def render_resource_tree(resource_tree, project_id):
-    def recurse(parent_node):
+    def recurse(parent_node, route):
         ul = ET.Element('ul', { 'class': 'collapsible popout'})
+        node_index = 0
         for child_node in parent_node['resources']:
+            if len(route) == 0:
+                branch = "%s" % (node_index)
+            else:
+                branch = "%s,%s" % (route, node_index)
             li = ET.Element('li')
-            href = "./%s/%s" % (project_id, child_node['rsrc_id'])
-            anchor = ET.Element('a', { 'href': href})
-            anchor.text = child_node['rsrc_name']
+            href = "./%s/view?route=%s" % (project_id, branch)
             header = ET.Element('div', { 'class': 'collapsible-header'})
-            header.append(anchor)
+            if 'activity_ids' in child_node or 'wbs_ids' in child_node:
+                anchor = ET.Element('a', { 'href': href})
+                anchor.text = child_node['rsrc_name']
+                header.append(anchor)
+            else:
+                p = ET.Element('p')
+                p.text = child_node['rsrc_name']
+                header.append(p)
             if 'resources' in child_node:
                 body = ET.Element('div', { 'class': 'collapsible-body'})
-                child_ul = recurse(child_node)
+                child_ul = recurse(child_node, branch)
                 body.append(child_ul)
                 li.append(header)
                 li.append(body)
             else:
                 li.append(header)
             ul.append(li)
+            node_index += 1
         return ul
-    ul = recurse(resource_tree)
+    ul = recurse(resource_tree, '')
     resource_list = ET.tostring(ul, 'unicode')
     return resource_list
             
 
-@app.route('/p6/plan/<plan_id>/<project_id>')
+@app.route('/p6/plan/<int:plan_id>/<project_id>')
 def p6_project_list(plan_id, project_id):
     if not auth(request): return render_template('403.html', base_url=base_url)
+    plans = sync_plans_data()
     plan_ids = list(map(lambda o: o['id'], plans))
     if plan_id in plan_ids:
         plan_index = plan_ids.index(plan_id)
         plan = plans[plan_index]
-        plan_data_path = path.join(app.root_path, 'data', plan['file'])
+        plan_data_path = path.join(app.root_path, 'data', "%s.json" % plan['id'])
         if path.exists(plan_data_path):
             with open(plan_data_path, 'r') as f:
                 plan = json.loads(f.read())
             if project_id in plan['project_index']:
                 project = plan['projects'][plan['project_index'].index(project_id)]
-                resource_tree = {'resources': plan['resource_tree']}
-                resource_tree = render_resource_tree(resource_tree, project_id)
+                # resource_tree = {'resources': plan['resource_tree']}
+                resource_tree = render_resource_tree(plan, project_id)
                 return render_template('p6-resource-list.html', plan_id=plan_id, project_id=project_id, project=plan, resource_tree=resource_tree, base_url=base_url)
     return render_template('403.html', base_url=base_url)
 
-@app.route('/p6/plan/<plan_id>/<project_id>/<resource_id>')
-def p6_resource_reader(plan_id, project_id, resource_id):
+@app.route('/p6/plan/<int:plan_id>/<project_id>/view')
+def p6_resource_reader(plan_id, project_id):
     if not auth(request): return render_template('403.html', base_url=base_url)
-    plan_ids = list(map(lambda o: o['id'], plans))
-    if plan_id in plan_ids:
-        plan_index = plan_ids.index(plan_id)
-        plan = plans[plan_index]
-        plan_data_path = path.join(app.root_path, 'data', plan['file'])
-        if path.exists(plan_data_path):
-            with open(plan_data_path, 'r') as f:
-                plan = json.loads(f.read())
-            if project_id in plan['project_index']:
-                project = plan['projects'][plan['project_index'].index(project_id)] # needs a better handling
-                if resource_id in plan['resource_index']:
-                    resource = plan['resources'][plan['resource_index'].index(resource_id)]
-                    return render_template('p6-viewer.html', plan_id=plan_id, project_id=project_id, resource_id=resource_id, resource=resource, base_url=base_url)
+    route = request.args.get('route')
+    if route:
+        plans = sync_plans_data()
+        plan_ids = list(map(lambda o: o['id'], plans))
+        if plan_id in plan_ids:
+            plan_index = plan_ids.index(plan_id)
+            plan = plans[plan_index]
+            plan_data_path = path.join(app.root_path, 'data', "%s.json" % plan['id'])
+            if path.exists(plan_data_path):
+                with open(plan_data_path, 'r') as f:
+                    plan = json.loads(f.read())
+                    activities = plan['activities']
+                    activity_index = plan['activity_index']
+                    wbs = plan['wbs']
+                    wbs_index = plan['wbs_index']
+                if project_id in plan['project_index']:
+                    project = plan['projects'][plan['project_index'].index(project_id)] # needs a better handling
+                    route_array = list(map(lambda r: int(r), route.split(',')))
+                    resource = plan
+                    for step in route_array:
+                        resource = resource['resources'][step]
+                    resource['activities'] = []
+                    for activity_id in resource['activity_ids']:
+                        activity = activities[activity_index.index(activity_id)]
+                        resource['activities'].append(activity)
+                    for wbs_id in resource['wbs_ids']:
+                        wb = wbs[wbs_index.index(wbs_id)]
+                        resource['activities'].append(wb)
+                    resource_id = resource['rsrc_id']
+                    return render_template('p6-viewer.html', plan_id=plan_id, project_id=project_id, route=route, base_url=base_url)
     return render_template('403.html', base_url=base_url)
 
-# p6_reader = P6Reader(path.join(app.root_path, 'data', '231201 GLU Program v2.xer'))
-# test_data = p6_reader.get_schedule_data()
-# with open(test_data_path, 'w') as f:
-#     f.write(json.dumps(test_data, indent='\t'))
-
-@app.route('/p6/plan/<plan_id>/<project_id>/<resource_id>/get')
-def get_p6_data(plan_id, project_id, resource_id):
+@app.route('/p6/plan/<int:plan_id>/<project_id>/get')
+def get_p6_data(plan_id, project_id):
     if not auth(request): return Response(status=403)
-    plan_ids = list(map(lambda o: o['id'], plans))
-    if plan_id in plan_ids:
-        plan_index = plan_ids.index(plan_id)
-        plan = plans[plan_index]
-        plan_data_path = path.join(app.root_path, 'data', plan['file'])
-        if path.exists(plan_data_path):
-            with open(plan_data_path, 'r') as f:
-                plan = json.loads(f.read())
-            if project_id in plan['project_index']:
-                project = plan['projects'][plan['project_index'].index(project_id)] # needs a better handling
-                if resource_id in plan['resource_index']:
-                    resource = plan['resources'][plan['resource_index'].index(resource_id)]
+    route = request.args.get('route')
+    if route:
+        plans = sync_plans_data()
+        plan_ids = list(map(lambda o: o['id'], plans))
+        if plan_id in plan_ids:
+            plan_index = plan_ids.index(plan_id)
+            plan = plans[plan_index]
+            plan_data_path = path.join(app.root_path, 'data', "%s.json" % plan['id'])
+            if path.exists(plan_data_path):
+                with open(plan_data_path, 'r') as f:
+                    plan = json.loads(f.read())
+                    activities = plan['activities']
+                    activity_index = plan['activity_index']
+                    wbs = plan['wbs']
+                    wbs_index = plan['wbs_index']
+                if project_id in plan['project_index']:
+                    project = plan['projects'][plan['project_index'].index(project_id)] # needs a better handling
+                    route_array = list(map(lambda r: int(r), route.split(',')))
+                    resource = plan
+                    for step in route_array:
+                        resource = resource['resources'][step]
+                    resource['activities'] = []
+                    resource['parent'] = None
+                    for activity_id in resource['activity_ids']:
+                        activity = activities[activity_index.index(activity_id)]
+                        resource['activities'].append(activity)
+                    for wbs_id in resource['wbs_ids']:
+                        wb = wbs[wbs_index.index(wbs_id)]
+                        resource['activities'].append(wb)
                     return jsonify(resource)
     if not auth(request): return Response(status=400)
+
+@app.route('/p6/plan/upload', methods=['GET', 'POST'])
+def upload_new_plan():
+    if not auth(request): return render_template('403.html', base_url=base_url)
+    if request.method == 'POST':
+        if 'file' in request.files:
+            plans = sync_plans_data()
+            plan_ids = list(map(lambda o: int(o['id']), plans))
+            if len(plan_ids) > 0:
+                next_id = max(plan_ids) + 1
+            else:
+                next_id = 1
+            project_path = path.join(app.root_path, 'data', '%s.xer' % next_id)
+            processed_data_path = path.join(app.root_path, 'data', '%s.json' % next_id)
+            name = request.form['project_name']
+            user = get_user(request)
+            user_id = user.id
+            plans.append({"id": next_id, "name": name, "created_by": user_id })
+            save_plans_data(plans)
+            file = request.files['file']
+            file.save(project_path)
+            p6_reader = P6Reader(project_path)
+            processed_data = p6_reader.get_schedule_data()
+            with open(processed_data_path, 'w') as f:
+                f.write(json.dumps(processed_data, indent='\t'))
+            return render_template('message.html', message="Thank you, your plan has been uploaded", next="p6", base_url=base_url)
+        else:
+            return render_template('message.html', message="Something went wrong!", base_url=base_url)
+    else:
+        return render_template('upload-plan.html', base_url=base_url)
 
 # helper functions
 def format_sse(data: str, event=None) -> str:

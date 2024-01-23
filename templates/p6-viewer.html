@@ -38,8 +38,9 @@
             var config = {
                 data: {
                     all: {
-                        url: "./{{resource_id}}/get",
+                        url: "./get?route={{route}}",
                         success: function (data) {
+                            debugger;
                             return data; // Return the processed model
                         }
                     },
@@ -131,7 +132,6 @@
             };
 
             globalThis.gantt = new Gantt('gantt', config);
-            //$('#loader').remove();
         });
 
 

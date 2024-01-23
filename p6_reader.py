@@ -44,17 +44,17 @@ class P6Reader:
             resource_index = self.resource_index.index(resource_id)
             if resource_index == None: continue
             resource = self.resources[resource_index]
-            if not 'activities' in resource:
-                resource['activities'] = []
+            # if not 'activities' in resource:
+            #     resource['activities'] = []
             if not 'activity_ids' in resource:
                 resource['activity_ids'] = []
-            resource['activities'].append(activity)
+            # resource['activities'].append(activity)
             resource['activity_ids'].append(activity['id'])
             # get wbs as activity
             if not 'wbs_ids' in resource:
                 resource['wbs_ids'] = []
-            if not 'wbs' in resource:
-                resource['wbs'] = []
+            # if not 'wbs' in resource:
+            #     resource['wbs'] = []
             wbs_id = activity['wbs_id']
             wbs_node_index = self.wbs_index.index(wbs_id)
             wbs_node = self.wbs[wbs_node_index]
@@ -67,7 +67,7 @@ class P6Reader:
                 wbs_node['parent'] = None
             if not wbs_id in resource['wbs_ids']:
                 resource['wbs_ids'].append(wbs_id)
-                resource['wbs'].append(wbs_node)
+                # resource['wbs'].append(wbs_node)
             parent = wbs_node['wbs_id']
             # and any parent wbs
             while parent in self.wbs_index:
@@ -83,7 +83,7 @@ class P6Reader:
                     parent_node['parent'] = None
                 if parent_node['wbs_id'] not in resource['wbs_ids']:
                     resource['wbs_ids'].append(parent_node['wbs_id'])
-                    resource['wbs'].append(parent_node)
+                    # resource['wbs'].append(parent_node)
         
 
        
@@ -101,52 +101,75 @@ class P6Reader:
                 if not 'resources' in parent_node:
                     parent_node['resources'] = []
                 parent_node['resources'].append(resource)
-                if 'activities' in resource and not 'activities' in parent_node:
-                    parent_node['activities'] = []
-                    parent_node['activity_ids'] = []
-                    parent_node['wbs'] = []
-                    parent_node['wbs_ids'] = []
-                if 'activities' in resource:
-                    for activity_id in resource['activity_ids']:
-                        if not activity_id in parent_node['activity_ids']:
-                            parent_node['activity_ids'].append(activity_id)
-                            activity_index = resource['activity_ids'].index(activity_id)
-                            parent_node['activities'].append(resource['activities'][activity_index])
-                if 'wbs' in resource:
-                    for wbs_id in resource['wbs_ids']:
-                        if not wbs_id in parent_node['wbs_ids']:
-                            parent_node['wbs_ids'].append(wbs_id)
-                            wbs_index = resource['wbs_ids'].index(wbs_id)
-                            parent_node['wbs'].append(resource['wbs'][wbs_index])
+        
+        def rollup_ids(node):
+            if not 'activity_ids' in node:
+                node['activity_ids'] = []
+            if not 'wbs_ids' in node:
+                node['wbs_ids'] = []
+            if 'resources' in node:
+                resources = node['resources']
+                for resource in resources:
+                    [activity_ids, wbs_ids] = rollup_ids(resource)
+                    node['activity_ids'] += activity_ids
+                    node['wbs_ids'] += wbs_ids
+            return [node['activity_ids'], node['wbs_ids']]
+        for resource in resource_tree:
+            [activity_ids, wbs_ids] = rollup_ids(resource)
+            if not 'activity_ids' in resource:
+                resource['activity_ids'] = []
+            resource['activity_ids'] + activity_ids
+            if not 'wbs_ids' in resource:
+                resource['wbs_ids'] = []
+            resource['wbs_ids'] + wbs_ids
+
+
+                # if 'activities' in resource and not 'activities' in parent_node:
+                    # parent_node['activities'] = []
+                    # parent_node['activity_ids'] = []
+                    # parent_node['wbs'] = []
+                    # parent_node['wbs_ids'] = []
+                # if 'activities' in resource:
+                #     for activity_id in resource['activity_ids']:
+                #         if not activity_id in parent_node['activity_ids']:
+                #             parent_node['activity_ids'].append(activity_id)
+                            # activity_index = resource['activity_ids'].index(activity_id)
+                            # parent_node['activities'].append(resource['activities'][activity_index])
+                # if 'wbs' in resource:
+                #     for wbs_id in resource['wbs_ids']:
+                #         if not wbs_id in parent_node['wbs_ids']:
+                #             parent_node['wbs_ids'].append(wbs_id)
+                            # wbs_index = resource['wbs_ids'].index(wbs_id)
+                            # parent_node['wbs'].append(resource['wbs'][wbs_index])
                 
         # combine activites with wbs
-        resources_with_activities = []
-        for resource in self.resources:
-            if 'activities' in resource and 'wbs' in resource:
-                resource['activities'] += resource['wbs']
-                resources_with_activities.append(resource)
-            elif 'wbs' in resource and not 'activities' in resource:
-                resource['activities'] = resource['wbs']
-        resources_with_activities_index = list(map(lambda resource: resource.get('rsrc_id'), resources_with_activities))
+        # resources_with_activities = []
+        # for resource in self.resources:
+            # if 'activities' in resource and 'wbs' in resource:
+                # resource['activities'] += resource['wbs']
+                # resources_with_activities.append(resource)
+            # elif 'wbs' in resource and not 'activities' in resource:
+                # resource['activities'] = resource['wbs']
+        # resources_with_activities_index = list(map(lambda resource: resource.get('rsrc_id'), resources_with_activities))
 
 
         return {
-            # "activities": self.activities,
-            # "activity_index": self.activity_index,
+            "activities": self.activities,
+            "activity_index": self.activity_index,
             # "precedents": self.precedents,
             # "precedent_index": self.precedent_index,
             "projects": self.projects,
             "project_index": self.project_index,
-            "resources": resources_with_activities,
-            "resource_index": resources_with_activities_index,
-            "resource_tree": resource_tree
-            # "wbs": self.wbs,
-            # "wbs_index": self.wbs_index,
+            # "resources": resources_with_activities,
+            # "resource_index": resources_with_activities_index,
+            "resources": resource_tree,
+            "wbs": self.wbs,
+            "wbs_index": self.wbs_index,
         }
     
 
 if __name__ == "__main__":
-    p6_reader = P6Reader(path.join(path.dirname(__file__), 'data', 'example.xer'))
+    p6_reader = P6Reader(path.join(path.dirname(__file__), 'data', '1.xer'))
     test_data = p6_reader.get_schedule_data()
-    with open(path.join(path.dirname(__file__), 'data', 'output.json'), 'w') as f:
+    with open(path.join(path.dirname(__file__), 'data', '1.json'), 'w') as f:
         f.write(json.dumps(test_data, indent='\t'))
