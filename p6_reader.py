@@ -84,6 +84,7 @@ class P6Reader:
                 if parent_node['wbs_id'] not in resource['wbs_ids']:
                     resource['wbs_ids'].append(parent_node['wbs_id'])
                     # resource['wbs'].append(parent_node)
+                self.wbs[parent_node_index] = parent_node
         
 
        
@@ -111,17 +112,23 @@ class P6Reader:
                 resources = node['resources']
                 for resource in resources:
                     [activity_ids, wbs_ids] = rollup_ids(resource)
-                    node['activity_ids'] += activity_ids
-                    node['wbs_ids'] += wbs_ids
+                    for activity_id in activity_ids:
+                        if not activity_id in node['activity_ids']:
+                            node['activity_ids'].append(activity_id)
+                    for wbs_id in wbs_ids:
+                        if not wbs_id in node['wbs_ids']:
+                            node['wbs_ids'].append(wbs_id)
             return [node['activity_ids'], node['wbs_ids']]
         for resource in resource_tree:
             [activity_ids, wbs_ids] = rollup_ids(resource)
             if not 'activity_ids' in resource:
                 resource['activity_ids'] = []
-            resource['activity_ids'] + activity_ids
-            if not 'wbs_ids' in resource:
-                resource['wbs_ids'] = []
-            resource['wbs_ids'] + wbs_ids
+            for activity_id in activity_ids:
+                if not activity_id in resource['activity_ids']:
+                    resource['activity_ids'].append(activity_id)
+            for wbs_id in wbs_ids:
+                if not wbs_id in resource['wbs_ids']:
+                    resource['wbs_ids'].append(wbs_id)
 
 
                 # if 'activities' in resource and not 'activities' in parent_node:

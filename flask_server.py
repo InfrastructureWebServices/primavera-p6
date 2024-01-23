@@ -35,7 +35,7 @@ app = Flask(__name__)
 DEBUG = os.environ.get('DEBUG') != None and os.environ.get('DEBUG') == 'true'
 if DEBUG:
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-    base_url = ""
+    base_url = "/"
 
 def auth(request):
     request.session = engine.SessionStore(request.cookies.get(settings.SESSION_COOKIE_NAME))
@@ -318,6 +318,9 @@ def get_p6_data(plan_id, project_id):
                     for wbs_id in resource['wbs_ids']:
                         wb = wbs[wbs_index.index(wbs_id)]
                         resource['activities'].append(wb)
+                    del resource['resources']
+                    del resource['activity_ids']
+                    del resource['wbs_ids']
                     return jsonify(resource)
     if not auth(request): return Response(status=400)
 
