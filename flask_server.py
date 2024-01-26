@@ -210,22 +210,9 @@ def get_p6_data(plan_id, project_id, activity_code_id):
             plan_data_path = path.join(app.root_path, 'data', "%s.xer" % plan['id'])
             if path.exists(plan_data_path):
                 plan = P6Reader(plan_data_path)
-                activities = plan.activities
-                activity_index = plan.activity_index
-                wbs = plan.wbs
-                wbs_index = plan.wbs_index
                 resource = plan.get_activity_code(activity_code_id)
                 resource['activities'] = plan.get_activity_code_tasks(activity_code_id)
                 resource['parent'] = None
-                # for activity_id in resource['activity_ids']:
-                #     activity = activities[activity_index.index(activity_id)]
-                #     resource['activities'].append(activity)
-                # for wbs_id in resource['wbs_ids']:
-                #     wb = wbs[wbs_index.index(wbs_id)]
-                #     resource['activities'].append(wb)
-                # if 'resources' in resource: del resource['resources']
-                # if 'activity_ids' in resource: del resource['activity_ids']
-                # if 'wbs_ids' in resource: del resource['wbs_ids']
                 return jsonify(resource)
     if type == 'excel': # to do 
         return Response(status=403)

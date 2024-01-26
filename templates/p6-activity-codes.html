@@ -18,14 +18,17 @@
     </script>
     <div class="container">
         <h2>{{activity_code_type.actv_code_type}}</h2>
-        <div class="row">
-            <h3>Activity Codes</h3>
-            <div class="col s4">
-                {% for activity_code in activity_codes %}
-                    <p><a href="../activity-code/{{activity_code.actv_code_id}}">{{activity_code.actv_code_name}}</a></p>
-                {% endfor %}
-            </div>
-        </div>
+        <table>
+            <tr>
+                <th>ID</th><th>Name</th>
+            </tr>
+            {% for activity_code in activity_codes %}
+            <tr>
+                <td>{{activity_code.actv_code_id}}</td>
+                <td><a href="../activity-code/{{activity_code.actv_code_id}}">{{activity_code.actv_code_name}}</a></td>
+            </tr>
+            {% endfor %}
+        </table>
     </div>
 </body>
 

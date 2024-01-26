@@ -18,11 +18,9 @@
     </script>
     <div class="container">
         <h2>{{activity_code.actv_code_name}}</h2>
-        <p>Total assignments: {{activity_code.total_assignments}}</p>
-        <ul>
-            <li><a href="./{{activity_code.actv_code_id}}/gantt-chart">Gantt Chart</a></li>
-            <li>Excel Export</li>
-        </ul>
+        <h3>Total assignments: {{activity_code.total_assignments}}</h3>
+        <button class="btn waves-effect waves-light" onclick="window.location='./{{activity_code.actv_code_id}}/gantt-chart'">View Gantt Chart</button>
+        <button class="btn waves-effect waves-light disabled">Export to Excel</button>
     </div>
 </body>
 

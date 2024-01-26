@@ -18,74 +18,52 @@
     </script>
     <div class="container">
         <h2>Task</h2>   
-        <div class="row">
-            <div class="col s2">
-                <p>ID</p>
-            </div>
-            <div class="col s10 m4">
-                <p>{{task.task_id}}</p>
-            </div>
-            <div class="col s2">
-                <p>Name</p>
-            </div>
-            <div class="col s10 m4">
-                <p>{{task.task_name}}</p>
-            </div>
-            <div class="col s2">
-                <p>Physically Complete (%)</p>
-            </div>
-            <div class="col s10 m4">
-                <p>{{task.phys_complete_pct}}</p>
-            </div>
-            <div class="col s2">
-                <p>Complete Percent Type</p>
-            </div>
-            <div class="col s10 m4">
-                <p>{{task.complete_pct_type}}</p>
-            </div>
-            <div class="col s2">
-                <p>Task Type</p>
-            </div>
-            <div class="col s10 m4">
-                <p>{{task.task_type}}</p>
-            </div>
-            <div class="col s2">
-                <p>Duration Type</p>
-            </div>
-            <div class="col s10 m4">
-                <p>{{task.duration_type}}</p>
-            </div>
-            <div class="col s2">
-                <p>Status Code</p>
-            </div>
-            <div class="col s10 m4">
-                <p>{{task.status_code}}</p>
-            </div>
-            <div class="col s2">
-                <p>Target Start Date</p>
-            </div>
-            <div class="col s10 m4">
-                <p>{{task.target_start_date}}</p>
-            </div>
-            <div class="col s2">
-                <p>Actual Start Date</p>
-            </div>
-            <div class="col s10 m4">
-                <p>{{task.act_start_date}}</p>
-            </div>
-            <div class="col s2">
-                <p>Target End Date</p>
-            </div>
-            <div class="col s10 m4">
-                <p>{{task.target_end_date}}</p>
-            </div>
-            <div class="col s2">
-                <p>Actual End Date</p>
-            </div>
-            <div class="col s10 m4">
-                <p>{{task.act_end_date}}</p>
-            </div>
-        </div>
+        <table class="table selectable">
+            <tr>
+                <th>ID</th>
+                <td>{{task.task_id}}</td>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <td>{{task.task_name}}</td>
+            </tr>
+            <tr>
+                <th>Physically Complete</th>
+                <td>{{task.phys_complete_pct}}%</td>
+            </tr>
+            <tr>
+                <th>Complete Percent Type</th>
+                <td>{{task.complete_pct_type}} %</td>
+            </tr>
+            <tr>
+                <th>Task Type</th>
+                <td>{{task.task_type}}</td>
+            </tr>
+            <tr>
+                <th>Duration Type</th>
+                <td>{{task.duration_type}}</td>
+            </tr>
+            <tr>
+                <th>Status Code</th>
+                <td>{{task.status_code}}</td>
+            </tr>
+            <tr>
+                <th>Target Start Date</th>
+                <td>{{task.target_start_date}}</td>
+            </tr>
+            <tr>
+                <th>Actual Start Date</th>
+                <td>{{task.act_start_date}}</td>
+            </tr>
+            <tr>
+                <th>Target End Date</th>
+                <td>{{task.target_end_date}}</td>
+            </tr>
+            <tr>
+                <th>Actual End Date</th>
+                <td>{{task.act_end_date}}</td>
+            </tr>
+        </table>
     </div>
 </body>
 

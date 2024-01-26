@@ -124,21 +124,39 @@
                     'separator',
                     {
                         type: 'select',
-                        text: 'Filter WBS',
+                        text: 'T-Minus Filter',
                         options: [
-                            { value: 'false', text: 'No' },
-                            { value: 'true', text: 'Yes' },
+                            { value: 0, text: 'None' },
+                            { value: 2, text: 'T-Minus 2 Weeks' },
+                            { value: 3, text: 'T-Minus 3 Weeks' },
+                            { value: 6, text: 'T-Minus 6 Weeks' },
+                            { value: 9, text: 'T-Minus 9 Weeks' },
+                            { value: 12, text: 'T-Minus 12 Weeks' },
+                            { value: 20, text: 'T-Minus 20 Weeks' },
                         ],
                         onchange(value, ctx) {
                             const gantt = ctx.gantt;
-                            if (gantt.WBSFilter) {
-                                gantt.removeFilter(gantt.WBSFilter);
+                            if (gantt.TMinusFilter) {
+                                gantt.removeFilter(gantt.TMinusFilter);
                             }
-                            if (value && value !== 'false') {
-                                gantt.WBSFilter = gantt.addFilter(
+                            if (value && value !== "0") {
+                                gantt.TMinusFilter = gantt.addFilter(
                                     function (obj) {
-                                        var is_wbs = obj.getData().hasOwnProperty('wbs_id');
-                                        return is_wbs;
+                                        let data = obj.getData();
+                                        let start = new Date(data.target_start_date).getTime();
+                                        let end = new Date(data.target_end_date).getTime();
+                                        let now = Date.now();
+                                        let t_minus = now + 1000*60*60*24*7*parseInt(value);
+                                        if (end < now) {
+                                            return false;
+                                            debugger;
+                                        }
+                                        if (start > t_minus) {
+                                            return false;
+                                            debugger;
+                                        }
+                                        debugger;
+                                        return true;
                                     },
                                     true /* filter rows */,
                                     true /* filter activities */
@@ -147,6 +165,25 @@
                         },
                     },
                 ],
+                selection: {
+                    selectActivities(activities, activity) {
+                        window.location = `../../task/${data.task_id}`;
+                    },
+                },
+                timeTable: { 
+                    renderer: { 
+                        tooltipProperties: function (activity, ctx) { 
+                            data = activity.getData();
+                            
+                            var props = [
+                                'Name', data.task_name,
+                                'Start', data.target_start_date,
+                                'End', data.target_end_date
+                            ]
+                            return props;
+                        }
+                    }
+                },
                 title: "{{project.proj_short_name}}",
             };
 
