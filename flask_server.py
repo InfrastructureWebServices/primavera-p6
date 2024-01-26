@@ -11,10 +11,6 @@ import re
 import xml.etree.ElementTree as ET
 
 # local modules
-from package import Package
-from sync_worklots import Sync
-sync = Sync()
-from template import generate_template
 from p6_reader import P6Reader
 
 # django authentication
@@ -27,7 +23,6 @@ from django.contrib.auth.middleware import get_user
 engine = import_module(settings.SESSION_ENGINE)
 
 base_url = "/private/rpv/"
-
 
 # flask app
 app = Flask(__name__)
@@ -195,10 +190,46 @@ def p6_activity_code_gantt_chart(plan_id, project_id, activity_code_id):
         plan_data_path = path.join(app.root_path, 'data', "%s.xer" % plan['id'])
         if path.exists(plan_data_path):
             plan = P6Reader(plan_data_path)
-            activity_code = plan.get_activity_code(activity_code_id)
-            activity_code_tasks = plan.get_activity_code_tasks(activity_code_id)
-            return render_template('p6-viewer.html', plan_id=plan_id, project_id=project_id, activity_code_id=activity_code_id, base_url=base_url)
+            try:
+                project = plan.get_project(project_id)
+                return render_template('p6-viewer.html', project=project, base_url=base_url)
+            except:
+                print('No error handle!') # to do
     return render_template('403.html', base_url=base_url)
+
+@app.route('/p6/plan/<int:plan_id>/project/<project_id>/activity-code/<activity_code_id>/get')
+def get_p6_data(plan_id, project_id, activity_code_id):
+    if not auth(request): return Response(status=403)
+    type = request.args.get('type')
+    if type == 'gantt-chart':
+        plans = sync_plans_data()
+        plan_ids = list(map(lambda o: o['id'], plans))
+        if plan_id in plan_ids:
+            plan_index = plan_ids.index(plan_id)
+            plan = plans[plan_index]
+            plan_data_path = path.join(app.root_path, 'data', "%s.xer" % plan['id'])
+            if path.exists(plan_data_path):
+                plan = P6Reader(plan_data_path)
+                activities = plan.activities
+                activity_index = plan.activity_index
+                wbs = plan.wbs
+                wbs_index = plan.wbs_index
+                resource = plan.get_activity_code(activity_code_id)
+                resource['activities'] = plan.get_activity_code_tasks(activity_code_id)
+                resource['parent'] = None
+                # for activity_id in resource['activity_ids']:
+                #     activity = activities[activity_index.index(activity_id)]
+                #     resource['activities'].append(activity)
+                # for wbs_id in resource['wbs_ids']:
+                #     wb = wbs[wbs_index.index(wbs_id)]
+                #     resource['activities'].append(wb)
+                # if 'resources' in resource: del resource['resources']
+                # if 'activity_ids' in resource: del resource['activity_ids']
+                # if 'wbs_ids' in resource: del resource['wbs_ids']
+                return jsonify(resource)
+    if type == 'excel': # to do 
+        return Response(status=403)
+    if not auth(request): return Response(status=400)
 
 @app.route('/p6/plan/<int:plan_id>/project/<project_id>/task/<task_id>')
 def p6_task(plan_id, project_id, task_id):
@@ -234,7 +265,7 @@ def p6_resource_reader(plan_id, project_id):
                     wbs = plan['wbs']
                     wbs_index = plan['wbs_index']
                 if project_id in plan['project_index']:
-                    project = plan['projects'][plan['project_index'].index(project_id)] # needs a better handling
+                    project = plan.get_project(project_id)
                     route_array = list(map(lambda r: int(r), route.split(',')))
                     resource = plan
                     for step in route_array:
@@ -250,43 +281,7 @@ def p6_resource_reader(plan_id, project_id):
                     return render_template('p6-viewer.html', plan_id=plan_id, project_id=project_id, route=route, base_url=base_url)
     return render_template('403.html', base_url=base_url)
 
-@app.route('/p6/plan/<int:plan_id>/project/<project_id>/get')
-def get_p6_data(plan_id, project_id):
-    if not auth(request): return Response(status=403)
-    route = request.args.get('route')
-    if route:
-        plans = sync_plans_data()
-        plan_ids = list(map(lambda o: o['id'], plans))
-        if plan_id in plan_ids:
-            plan_index = plan_ids.index(plan_id)
-            plan = plans[plan_index]
-            plan_data_path = path.join(app.root_path, 'data', "%s.json" % plan['id'])
-            if path.exists(plan_data_path):
-                with open(plan_data_path, 'r') as f:
-                    plan = json.loads(f.read())
-                    activities = plan['activities']
-                    activity_index = plan['activity_index']
-                    wbs = plan['wbs']
-                    wbs_index = plan['wbs_index']
-                if project_id in plan['project_index']:
-                    project = plan['projects'][plan['project_index'].index(project_id)] # needs a better handling
-                    route_array = list(map(lambda r: int(r), route.split(',')))
-                    resource = plan
-                    for step in route_array:
-                        resource = resource['resources'][step]
-                    resource['activities'] = []
-                    resource['parent'] = None
-                    for activity_id in resource['activity_ids']:
-                        activity = activities[activity_index.index(activity_id)]
-                        resource['activities'].append(activity)
-                    for wbs_id in resource['wbs_ids']:
-                        wb = wbs[wbs_index.index(wbs_id)]
-                        resource['activities'].append(wb)
-                    if 'resources' in resource: del resource['resources']
-                    if 'activity_ids' in resource: del resource['activity_ids']
-                    if 'wbs_ids' in resource: del resource['wbs_ids']
-                    return jsonify(resource)
-    if not auth(request): return Response(status=400)
+
 
 @app.route('/p6/plan/upload', methods=['GET', 'POST'])
 def upload_new_plan():

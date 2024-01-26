@@ -1,20 +1,5 @@
 [
 	{
-		"id": 1,
-		"name": "Test 1",
-		"created_by": null
-	},
-	{
-		"id": 2,
-		"name": "Test 2",
-		"created_by": null
-	},
-	{
-		"id": 3,
-		"name": "Test 3",
-		"created_by": null
-	},
-	{
 		"id": 4,
 		"name": "GLU_CP00_BP 00LP v3.5.4 23012024 1307",
 		"created_by": null

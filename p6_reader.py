@@ -180,6 +180,13 @@ class P6Reader:
             "wbs": self.wbs,
             "wbs_index": self.wbs_index,
         }
+        
+    def get_project(self, project_id=None):
+        if project_id != None:
+            if project_id in self.project_index:
+                project = self.projects[self.project_index.index(project_id)]
+                return project
+        raise LookupError('Project ID not found!')
     
     def get_activity_types(self, project_id=None):
         if project_id != None:
@@ -215,7 +222,7 @@ class P6Reader:
         activity_code_type = self.activity_code_types[self.activity_code_type_index.index(activity_code_type)]
         return activity_code_type
 if __name__ == "__main__":
-    p6_reader = P6Reader(path.join(path.dirname(__file__), 'data', 'GLU_CP00_BP 00LP v3.5.4 23012024 1307.xer'))
+    p6_reader = P6Reader(path.join(path.dirname(__file__), 'data', 'example.xer'))
     test_data = p6_reader.get_schedule_data()
-    # with open(path.join(path.dirname(__file__), 'data', '1.json'), 'w') as f:
-    #     f.write(json.dumps(test_data, indent='\t'))
+    with open(path.join(path.dirname(__file__), 'data', '4.json'), 'w') as f:
+        f.write(json.dumps(test_data, indent='\t'))

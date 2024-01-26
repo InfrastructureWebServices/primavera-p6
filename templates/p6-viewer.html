@@ -38,7 +38,7 @@
             var config = {
                 data: {
                     all: {
-                        url: "./get?route={{route}}",
+                        url: "./get?type=gantt-chart",
                         success: function (data) {
                             return data; // Return the processed model
                         }
@@ -48,8 +48,8 @@
                             return [data];
                         },
                         parent: 'parent',
-                        name: 'rsrc_name',
-                        id: 'rsrc_id',
+                        name: 'actv_code_name',
+                        id: 'actv_code_id',
                     },
                     reservations: {
                         data: function (data) {
@@ -66,22 +66,24 @@
                         start: function (activity) {
                             if (activity.task_id) {
                                 value = activity.target_start_date;
-                            } else {
-                                value = null;
+                                value = new Date(value).getTime();
+                                return value;
                             }
-                            return value;
+                            return null;
                         },
                         end: function (activity) {
                             if (activity.task_id) {
                                 value = activity.target_end_date;
-                            } else {
-                                value = null;
+                                value = new Date(value).getTime();
+                                return value;
                             }
-                            return value;
+                            return null;
                         },
                         parent: function (activity) {
-                            value = activity.parent;
-                            return value;
+                            if (activity.parent) { 
+                                return activity,parent;
+                            } 
+                            return null;
                         },
                         name: function (activity) {
                             if (activity.task_id) {
@@ -145,7 +147,7 @@
                         },
                     },
                 ],
-                title: 'GLU Program',
+                title: "{{project.proj_short_name}}",
             };
 
             globalThis.gantt = new Gantt('gantt', config);
