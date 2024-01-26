@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Activity Code Tasks</title>
+    {% include 'headers.html' %}
+</head>
+
+<body>
+    <script>
+        // accordians
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('.collapsible');
+            var instances = M.Collapsible.init(elems, {
+            // specify options here
+            });
+        });
+    </script>
+    <div class="container">
+        <h2>{{activity_code.actv_code_name}}</h2>
+        <p>Total assignments: {{activity_code.total_assignments}}</p>
+        <ul>
+            <li><a href="./{{activity_code.actv_code_id}}/gantt-chart">Gantt Chart</a></li>
+            <li>Excel Export</li>
+        </ul>
+    </div>
+</body>
+
+</html>

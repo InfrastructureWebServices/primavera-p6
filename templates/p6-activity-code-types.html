@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Activity Code Types</title>
+    {% include 'headers.html' %}
+</head>
+
+<body>
+    <script>
+        // accordians
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('.collapsible');
+            var instances = M.Collapsible.init(elems, {
+            // specify options here
+            });
+        });
+    </script>
+    <div class="container">
+        <div class="row">
+            <h2>Activity Code Types</h2>
+            <div class="col s4">
+                {% for activity_type in activity_types %}
+                    <p><a href="./activity-code-type/{{activity_type.actv_code_type_id}}">{{activity_type.actv_code_type}}</a></p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Task</title>
+    {% include 'headers.html' %}
+</head>
+
+<body>
+    <script>
+        // accordians
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('.collapsible');
+            var instances = M.Collapsible.init(elems, {
+            // specify options here
+            });
+        });
+    </script>
+    <div class="container">
+        <h2>Task</h2>   
+        <div class="row">
+            <div class="col s2">
+                <p>ID</p>
+            </div>
+            <div class="col s10 m4">
+                <p>{{task.task_id}}</p>
+            </div>
+            <div class="col s2">
+                <p>Name</p>
+            </div>
+            <div class="col s10 m4">
+                <p>{{task.task_name}}</p>
+            </div>
+            <div class="col s2">
+                <p>Physically Complete (%)</p>
+            </div>
+            <div class="col s10 m4">
+                <p>{{task.phys_complete_pct}}</p>
+            </div>
+            <div class="col s2">
+                <p>Complete Percent Type</p>
+            </div>
+            <div class="col s10 m4">
+                <p>{{task.complete_pct_type}}</p>
+            </div>
+            <div class="col s2">
+                <p>Task Type</p>
+            </div>
+            <div class="col s10 m4">
+                <p>{{task.task_type}}</p>
+            </div>
+            <div class="col s2">
+                <p>Duration Type</p>
+            </div>
+            <div class="col s10 m4">
+                <p>{{task.duration_type}}</p>
+            </div>
+            <div class="col s2">
+                <p>Status Code</p>
+            </div>
+            <div class="col s10 m4">
+                <p>{{task.status_code}}</p>
+            </div>
+            <div class="col s2">
+                <p>Target Start Date</p>
+            </div>
+            <div class="col s10 m4">
+                <p>{{task.target_start_date}}</p>
+            </div>
+            <div class="col s2">
+                <p>Actual Start Date</p>
+            </div>
+            <div class="col s10 m4">
+                <p>{{task.act_start_date}}</p>
+            </div>
+            <div class="col s2">
+                <p>Target End Date</p>
+            </div>
+            <div class="col s10 m4">
+                <p>{{task.target_end_date}}</p>
+            </div>
+            <div class="col s2">
+                <p>Actual End Date</p>
+            </div>
+            <div class="col s10 m4">
+                <p>{{task.act_end_date}}</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

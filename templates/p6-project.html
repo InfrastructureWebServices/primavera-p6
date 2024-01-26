@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Project</title>
+    {% include 'headers.html' %}
+</head>
+
+<body>
+    <script>
+        // accordians
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('.collapsible');
+            var instances = M.Collapsible.init(elems, {
+            // specify options here
+            });
+        });
+    </script>
+    <div class="container">
+        <h2>Project</h2>   
+        <div class="row">
+            <div class="col s12 m6">
+                <div class="row">
+                    <div class="col s4">
+                        <span>Project ID</span>
+                    </div>
+                    <div class="col s8">
+                        <span>{{project.proj_id}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col s12 m6">
+                <div class="row">
+                    <div class="col s4">
+                        <span>Name</span>
+                    </div>
+                    <div class="col s8">
+                        <span>{{project.proj_short_name}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s6 m4 l3">
+                <span><a href="./{{project_id}}/activity-code-types">Activity Code Types</a></span>
+            </div>
+            <div class="col s6 m4 l3">
+                <span>Resources</span>
+            </div>
+            <div class="col s6 m4 l3">
+                <span>WBS</span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -44,7 +44,7 @@
                         }
                     },
                     resources: {
-                        data: function (data) { 
+                        data: function (data) {
                             return [data];
                         },
                         parent: 'parent',
@@ -52,7 +52,7 @@
                         id: 'rsrc_id',
                     },
                     reservations: {
-                        data: function (data) { 
+                        data: function (data) {
                             return [];
                         },
                         activity: 'activity',
@@ -64,17 +64,17 @@
                             return value;
                         },
                         start: function (activity) {
-                            if (activity.task_id) { 
+                            if (activity.task_id) {
                                 value = activity.target_start_date;
-                            } else { 
+                            } else {
                                 value = null;
                             }
                             return value;
                         },
                         end: function (activity) {
-                            if (activity.task_id) { 
+                            if (activity.task_id) {
                                 value = activity.target_end_date;
-                            } else { 
+                            } else {
                                 value = null;
                             }
                             return value;
@@ -84,24 +84,24 @@
                             return value;
                         },
                         name: function (activity) {
-                            if (activity.task_id) { 
+                            if (activity.task_id) {
                                 value = activity.task_name;
-                            } else { 
+                            } else {
                                 value = activity.wbs_name;
                             }
                             return value;
                         },
                         id: function (activity) {
-                            if (activity.task_id) { 
+                            if (activity.task_id) {
                                 value = activity.task_id;
-                            } else { 
+                            } else {
                                 value = activity.wbs_id;
                             }
                             return value;
                         }
                     },
                     constraints: {
-                        data: function (data) { 
+                        data: function (data) {
                             return [];
                         },
                         from: 'from',
@@ -119,7 +119,31 @@
                     'fitToContent',
                     'zoomIn',
                     'zoomOut',
-                    'separator'
+                    'separator',
+                    {
+                        type: 'select',
+                        text: 'Filter WBS',
+                        options: [
+                            { value: 'false', text: 'No' },
+                            { value: 'true', text: 'Yes' },
+                        ],
+                        onchange(value, ctx) {
+                            const gantt = ctx.gantt;
+                            if (gantt.WBSFilter) {
+                                gantt.removeFilter(gantt.WBSFilter);
+                            }
+                            if (value && value !== 'false') {
+                                gantt.WBSFilter = gantt.addFilter(
+                                    function (obj) {
+                                        var is_wbs = obj.getData().hasOwnProperty('wbs_id');
+                                        return is_wbs;
+                                    },
+                                    true /* filter rows */,
+                                    true /* filter activities */
+                                );
+                            }
+                        },
+                    },
                 ],
                 title: 'GLU Program',
             };

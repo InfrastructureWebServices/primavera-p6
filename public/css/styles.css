@@ -4,6 +4,9 @@ body {
     color: black;
     margin: 20px;
 }
+.row { 
+    gap: 5px;
+}
 h1 { 
     font-size: 36px;
     text-align: center;

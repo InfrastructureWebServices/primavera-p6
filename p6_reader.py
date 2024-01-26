@@ -15,6 +15,13 @@ class P6Reader:
         self.resource_index = list(map(lambda resource: resource.get('rsrc_id'), self.resources))
         self.precedents = self.xer.get('TASKPRED').entries
         self.precedent_index = list(map(lambda precedent: precedent.get('task_pred_id'), self.precedents))
+        self.activity_codes = self.xer.get('ACTVCODE').entries
+        self.activity_code_index = list(map(lambda activity_code: activity_code.get('actv_code_id'), self.activity_codes))
+        self.activity_code_types = self.xer.get('ACTVTYPE').entries
+        self.activity_code_type_index = list(map(lambda activity_code_type: activity_code_type.get('actv_code_type_id'), self.activity_code_types))
+        self.task_activities = self.xer.get('TASKACTV').entries
+        self.task_activity_index = list(map(lambda task_activity: task_activity.get('task_id'), self.task_activities))
+        
         # self.resource_roles = self.xer.get('RSRCROLE')
         # self.calendars = self.xer.get('CALENDAR')
 
@@ -174,9 +181,41 @@ class P6Reader:
             "wbs_index": self.wbs_index,
         }
     
-
+    def get_activity_types(self, project_id=None):
+        if project_id != None:
+            filtered_activity_types = list(filter(lambda i: i.get('proj_id') == project_id, self.activity_code_types))
+            return filtered_activity_types
+        else:
+            return self.activity_code_types
+    def get_activity_codes(self, activity_code_type_id=None):
+        if activity_code_type_id != None:
+            filtered_activity_codes = list(filter(lambda i: i.get('actv_code_type_id') == activity_code_type_id, self.activity_codes))
+            return filtered_activity_codes
+        else:
+            return self.activity_codes
+    def get_activity_code_tasks(self, activity_code_id):
+        if activity_code_id != None:
+            filtered_activity_codes_tasks = list(filter(lambda i: i.get('actv_code_id') == activity_code_id, self.task_activities))
+            for task in filtered_activity_codes_tasks:
+                task_id = task.get('task_id')
+                task_data = self.activities[self.activity_index.index(task_id)]
+                task.update(task_data)
+            return filtered_activity_codes_tasks
+        else:
+            return self.task_activities
+    def get_task(self, task_id):
+        task = self.activities[self.activity_index.index(task_id)]
+        task_activity = self.task_activities[self.task_activity_index.index(task_id)]
+        task.update(task_activity)
+        return task
+    def get_activity_code(self, activity_code_id):
+        activity_code = self.activity_codes[self.activity_code_index.index(activity_code_id)]
+        return activity_code
+    def get_activity_code_type(self, activity_code_type):
+        activity_code_type = self.activity_code_types[self.activity_code_type_index.index(activity_code_type)]
+        return activity_code_type
 if __name__ == "__main__":
-    p6_reader = P6Reader(path.join(path.dirname(__file__), 'data', '1.xer'))
+    p6_reader = P6Reader(path.join(path.dirname(__file__), 'data', 'GLU_CP00_BP 00LP v3.5.4 23012024 1307.xer'))
     test_data = p6_reader.get_schedule_data()
-    with open(path.join(path.dirname(__file__), 'data', '1.json'), 'w') as f:
-        f.write(json.dumps(test_data, indent='\t'))
+    # with open(path.join(path.dirname(__file__), 'data', '1.json'), 'w') as f:
+    #     f.write(json.dumps(test_data, indent='\t'))

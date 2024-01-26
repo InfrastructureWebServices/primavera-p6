@@ -232,7 +232,7 @@ def render_resource_tree(resource_tree, project_id):
     return resource_list
             
 
-@app.route('/p6/plan/<int:plan_id>/<project_id>')
+@app.route('/p6/plan/<int:plan_id>/project/<project_id>')
 def p6_project_list(plan_id, project_id):
     if not auth(request): return render_template('403.html', base_url=base_url)
     plans = sync_plans_data()
@@ -248,10 +248,88 @@ def p6_project_list(plan_id, project_id):
                 project = plan['projects'][plan['project_index'].index(project_id)]
                 # resource_tree = {'resources': plan['resource_tree']}
                 resource_tree = render_resource_tree(plan, project_id)
-                return render_template('p6-resource-list.html', plan_id=plan_id, project_id=project_id, project=plan, resource_tree=resource_tree, base_url=base_url)
+                return render_template('p6-project.html', plan_id=plan_id, project_id=project_id, project=project, resource_tree=resource_tree, base_url=base_url)
     return render_template('403.html', base_url=base_url)
 
-@app.route('/p6/plan/<int:plan_id>/<project_id>/view')
+@app.route('/p6/plan/<int:plan_id>/project/<project_id>/activity-code-types')
+def p6_activity_types(plan_id, project_id):
+    if not auth(request): return render_template('403.html', base_url=base_url)
+    plans = sync_plans_data()
+    plan_ids = list(map(lambda o: o['id'], plans))
+    if plan_id in plan_ids:
+        plan_index = plan_ids.index(plan_id)
+        plan = plans[plan_index]
+        plan_data_path = path.join(app.root_path, 'data', "%s.xer" % plan['id'])
+        if path.exists(plan_data_path):
+            plan = P6Reader(plan_data_path)
+            activity_types = plan.get_activity_types(project_id)
+            return render_template('p6-activity-code-types.html', plan_id=plan_id, project_id=project_id, activity_types=activity_types, base_url=base_url)
+    return render_template('403.html', base_url=base_url)
+
+@app.route('/p6/plan/<int:plan_id>/project/<project_id>/activity-code-type/<activity_code_type_id>')
+def p6_activity_codes(plan_id, project_id, activity_code_type_id):
+    if not auth(request): return render_template('403.html', base_url=base_url)
+    plans = sync_plans_data()
+    plan_ids = list(map(lambda o: o['id'], plans))
+    if plan_id in plan_ids:
+        plan_index = plan_ids.index(plan_id)
+        plan = plans[plan_index]
+        plan_data_path = path.join(app.root_path, 'data', "%s.xer" % plan['id'])
+        if path.exists(plan_data_path):
+            plan = P6Reader(plan_data_path)
+            activity_code_type = plan.get_activity_code_type(activity_code_type_id)
+            activity_codes = plan.get_activity_codes(activity_code_type_id)
+            return render_template('p6-activity-codes.html', plan_id=plan_id, project_id=project_id, activity_code_type=activity_code_type, activity_codes=activity_codes, base_url=base_url)
+    return render_template('403.html', base_url=base_url)
+
+@app.route('/p6/plan/<int:plan_id>/project/<project_id>/activity-code/<activity_code_id>')
+def p6_activity_code(plan_id, project_id, activity_code_id):
+    if not auth(request): return render_template('403.html', base_url=base_url)
+    plans = sync_plans_data()
+    plan_ids = list(map(lambda o: o['id'], plans))
+    if plan_id in plan_ids:
+        plan_index = plan_ids.index(plan_id)
+        plan = plans[plan_index]
+        plan_data_path = path.join(app.root_path, 'data', "%s.xer" % plan['id'])
+        if path.exists(plan_data_path):
+            plan = P6Reader(plan_data_path)
+            activity_code = plan.get_activity_code(activity_code_id)
+            activity_code_tasks = plan.get_activity_code_tasks(activity_code_id)
+            return render_template('p6-activity-code.html', plan_id=plan_id, project_id=project_id, activity_code=activity_code, base_url=base_url)
+    return render_template('403.html', base_url=base_url)
+
+@app.route('/p6/plan/<int:plan_id>/project/<project_id>/activity-code/<activity_code_id>/gantt-chart')
+def p6_activity_code_gantt_chart(plan_id, project_id, activity_code_id):
+    if not auth(request): return render_template('403.html', base_url=base_url)
+    plans = sync_plans_data()
+    plan_ids = list(map(lambda o: o['id'], plans))
+    if plan_id in plan_ids:
+        plan_index = plan_ids.index(plan_id)
+        plan = plans[plan_index]
+        plan_data_path = path.join(app.root_path, 'data', "%s.xer" % plan['id'])
+        if path.exists(plan_data_path):
+            plan = P6Reader(plan_data_path)
+            activity_code = plan.get_activity_code(activity_code_id)
+            activity_code_tasks = plan.get_activity_code_tasks(activity_code_id)
+            return render_template('p6-viewer.html', plan_id=plan_id, project_id=project_id, activity_code_id=activity_code_id, base_url=base_url)
+    return render_template('403.html', base_url=base_url)
+
+@app.route('/p6/plan/<int:plan_id>/project/<project_id>/task/<task_id>')
+def p6_task(plan_id, project_id, task_id):
+    if not auth(request): return render_template('403.html', base_url=base_url)
+    plans = sync_plans_data()
+    plan_ids = list(map(lambda o: o['id'], plans))
+    if plan_id in plan_ids:
+        plan_index = plan_ids.index(plan_id)
+        plan = plans[plan_index]
+        plan_data_path = path.join(app.root_path, 'data', "%s.xer" % plan['id'])
+        if path.exists(plan_data_path):
+            plan = P6Reader(plan_data_path)
+            task = plan.get_task(task_id)
+            return render_template('p6-task.html', plan_id=plan_id, project_id=project_id, task=task, base_url=base_url)
+    return render_template('403.html', base_url=base_url)
+
+@app.route('/p6/plan/<int:plan_id>/project/<project_id>/view')
 def p6_resource_reader(plan_id, project_id):
     if not auth(request): return render_template('403.html', base_url=base_url)
     route = request.args.get('route')
@@ -286,7 +364,7 @@ def p6_resource_reader(plan_id, project_id):
                     return render_template('p6-viewer.html', plan_id=plan_id, project_id=project_id, route=route, base_url=base_url)
     return render_template('403.html', base_url=base_url)
 
-@app.route('/p6/plan/<int:plan_id>/<project_id>/get')
+@app.route('/p6/plan/<int:plan_id>/project/<project_id>/get')
 def get_p6_data(plan_id, project_id):
     if not auth(request): return Response(status=403)
     route = request.args.get('route')
@@ -318,9 +396,9 @@ def get_p6_data(plan_id, project_id):
                     for wbs_id in resource['wbs_ids']:
                         wb = wbs[wbs_index.index(wbs_id)]
                         resource['activities'].append(wb)
-                    del resource['resources']
-                    del resource['activity_ids']
-                    del resource['wbs_ids']
+                    if 'resources' in resource: del resource['resources']
+                    if 'activity_ids' in resource: del resource['activity_ids']
+                    if 'wbs_ids' in resource: del resource['wbs_ids']
                     return jsonify(resource)
     if not auth(request): return Response(status=400)
 
